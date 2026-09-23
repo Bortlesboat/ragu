@@ -12,7 +12,10 @@ use ragu_core::{
     gadgets::Gadget,
     maybe::Maybe,
 };
-use udon::{curve::Affine, field::FftField};
+use udon::{
+    curve::EndomorphismAffine as Affine,
+    field::{CubeRootField, FftField},
+};
 
 use crate::{
     Boolean, Element, Nonzero, NonzeroBank, comparison::GadgetEquals, consistent::Consistent,
@@ -124,7 +127,7 @@ impl<'dr, D: Driver<'dr, F = C::Base>, C: Affine> Point<'dr, D, C> {
         D::just(|| {
             let x = *self.x.value().take();
             let y = *self.y.value().take();
-            <C as Affine>::from_xy(x, y).expect("must be valid affine point on curve")
+            C::from_xy(x, y).expect("must be valid affine point on curve")
         })
     }
 
@@ -195,7 +198,10 @@ impl<'dr, D: Driver<'dr, F = C::Base>, C: Affine> Point<'dr, D, C> {
     ///
     /// Returns a witness-generation error if the slope assignment cannot be
     /// computed from witness input.
-    pub fn double(&self, dr: &mut D) -> Result<Self> {
+    pub fn double(&self, dr: &mut D) -> Result<Self>
+    where
+        D::F: FftField,
+    {
         // delta = 3x^2 / 2y
         let double_y = self.y.double(dr);
         let delta = self
@@ -281,7 +287,10 @@ impl<'dr, D: Driver<'dr, F = C::Base>, C: Affine> Point<'dr, D, C> {
         dr: &mut D,
         other: &Self,
         bank: &mut NonzeroBank<'dr, D>,
-    ) -> Result<Self> {
+    ) -> Result<Self>
+    where
+        D::F: FftField,
+    {
         // See <https://github.com/zcash/zcash/issues/3924> for an explanation.
 
         // lambda_1 = (y_q - y_p)/(x_q - x_p)
@@ -321,7 +330,7 @@ impl<'dr, D: Driver<'dr, F = C::Base>, C: Affine> Consistent<'dr, D> for Point<'
 mod tests {
     use alloc::{vec, vec::Vec};
 
-    use udon::curve::Affine as _;
+    use udon::curve::Affine;
 
     use super::*;
 

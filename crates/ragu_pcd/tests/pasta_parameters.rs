@@ -2,15 +2,15 @@
 //! representation by comparing their canonical coordinates with the original.
 
 use ragu_core::{Cycle, FixedGenerators, pasta::Pasta};
-use udon::{curve::Affine, field::Field};
+use udon::{curve::Affine, field::PrimeField as Field};
 
 #[test]
 fn baked_points_match_original_parameters() {
-    fn append<C: Affine>(out: &mut Vec<u8>, generators: &impl FixedGenerators<C>) {
+    fn append<C: Affine<Base: Field>>(out: &mut Vec<u8>, generators: &impl FixedGenerators<C>) {
         for point in generators.g().iter().chain([generators.h()]) {
             let (x, y) = point.coordinates().expect("nonidentity generator");
-            out.extend_from_slice(&x.to_bytes());
-            out.extend_from_slice(&y.to_bytes());
+            out.extend_from_slice(x.to_bytes().as_ref());
+            out.extend_from_slice(y.to_bytes().as_ref());
         }
     }
 

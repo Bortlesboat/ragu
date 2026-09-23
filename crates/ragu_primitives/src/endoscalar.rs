@@ -25,8 +25,8 @@ use ragu_core::{
     maybe::{Always, Maybe},
 };
 use udon::{
-    curve::Affine,
-    field::{FftField, Field},
+    curve::EndomorphismAffine as Affine,
+    field::{CubeRootField, FftField, Field as _, PrimeField as Field},
 };
 
 use crate::{
@@ -263,7 +263,7 @@ impl<'dr, F: FftField> EndoscalarChallenge<'dr, NativeEmulator<F>> {
 /// value as a typed [`EndoscalarRangeError`] failure that rejection-sampling
 /// callers detect with [`Error::invalid_witness_source`].
 fn endoscalar_in_range<F: FftField>(value: F) -> bool {
-    !udon::field::Field::to_le_bits(&value)[F::CAPACITY as usize..]
+    !Field::to_le_bits(&value).as_ref()[F::CAPACITY as usize..]
         .iter()
         .any(|bit| *bit)
 }
@@ -340,9 +340,14 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
         let bits = decompose(dr, allocator, elem)?;
 
         let value = elem.value().map(|v| {
-            let le_bits = udon::field::Field::to_le_bits(v);
+            let le_bits = Field::to_le_bits(v);
             let mut acc = 0u128;
-            for (i, bit) in le_bits.iter().enumerate().take(u128::BITS as usize) {
+            for (i, bit) in le_bits
+                .as_ref()
+                .iter()
+                .enumerate()
+                .take(u128::BITS as usize)
+            {
                 if *bit {
                     acc |= 1u128 << i;
                 }
@@ -387,7 +392,10 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
         &self,
         dr: &mut D,
         p: &Point<'dr, D, C>,
-    ) -> Result<Point<'dr, D, C>> {
+    ) -> Result<Point<'dr, D, C>>
+    where
+        D::F: FftField,
+    {
         // Soundness: every `add_incomplete` and `double_and_add_incomplete`
         // call below requires `x_1 != x_0`. Appendix C of the Halo paper
         // (<https://eprint.iacr.org/2019/1021>) proves no such collision occurs
@@ -425,7 +433,7 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
     /// effective scalar for this endoscalar.
     pub fn lift(&self, dr: &mut D) -> Result<Element<'dr, D>>
     where
-        D::F: FftField,
+        D::F: FftField + CubeRootField,
     {
         let mut constant_term = (D::F::ZETA + D::F::ONE).double();
         let coeffs = [
@@ -467,7 +475,7 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
 ///
 /// This implements [Algorithm 2, \[BGH19\]](https://eprint.iacr.org/2019/1021)
 /// and is the native counterpart to [`Endoscalar::lift`].
-pub fn lift_endoscalar<F: FftField>(endo: u128) -> F {
+pub fn lift_endoscalar<F: FftField + CubeRootField>(endo: u128) -> F {
     let mut acc = (F::ZETA + F::ONE).double();
     for i in 0..(u128::BITS as usize / 2) {
         let bits = endo >> (i << 1);
@@ -531,8 +539,8 @@ mod tests {
     };
     use rand::{Rng, RngExt};
     use udon::{
-        curve::{Affine, Projective},
-        field::{FftField, Field},
+        curve::{EndomorphismAffine as Affine, EndomorphismProjective, Projective},
+        field::{CubeRootField, FftField, PrimeField as Field},
     };
 
     use super::{
@@ -565,7 +573,7 @@ mod tests {
         }
 
         /// Implements [Algorithm 2, \[BGH19\]](https://eprint.iacr.org/2019/1021).
-        pub fn lift<F: FftField>(&self) -> F {
+        pub fn lift<F: FftField + CubeRootField>(&self) -> F {
             super::lift_endoscalar(self.value)
         }
     }

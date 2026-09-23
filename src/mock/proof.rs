@@ -6,7 +6,7 @@ use ragu_core::{
 };
 use udon::{
     curve::{Affine as _, Projective},
-    field::Field as _,
+    field::PrimeField as Field,
 };
 
 use super::{
@@ -230,7 +230,7 @@ pub(crate) fn compute_header_hash(
 /// Absorbs `points` as affine coordinate pairs, rejecting the identity — which
 /// has no coordinates, and which real ragu's in-circuit `encode` could not
 /// witness either.
-fn absorb_points<G: Projective>(
+fn absorb_points<G: Projective<Base: Field>>(
     state: &mut blake2b_simd::State,
     tag: &[u8],
     points: &[G],

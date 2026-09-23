@@ -52,6 +52,7 @@ use core::{borrow::Borrow, marker::PhantomData};
 use rand::CryptoRng;
 use udon::{
     curve::Affine,
+    fft::reference::{Butterfly, Twiddle},
     field::{DeferredField, Field},
 };
 
@@ -185,7 +186,10 @@ impl<F: Field, R: Rank> Polynomial<F, R> {
     }
 
     /// Creates a polynomial with random coefficients filling all `4n` slots.
-    pub fn random<RNG: CryptoRng>(rng: &mut RNG) -> Self {
+    pub fn random<RNG: CryptoRng>(rng: &mut RNG) -> Self
+    where
+        F: udon::field::PrimeField,
+    {
         assert!(R::num_coeffs() > 0, "num_coeffs must be positive");
         let coeffs: Vec<F> = (0..R::num_coeffs())
             .map(|_| udon::field::random::<F>(|bytes| rng.fill_bytes(bytes)))
@@ -575,9 +579,9 @@ impl<F: Field> DoubleEndedIterator for CoeffIter<'_, F> {
 
 impl<F: Field> ExactSizeIterator for CoeffIter<'_, F> {}
 
-/// Polynomials are transformed over a domain as butterfly values: scaled by a
-/// twiddle, added, and negated coefficient-wise.
-impl<F: Field, R: Rank> udon::fft::reference::Butterfly<F> for Polynomial<F, R> {
+/// Polynomials support reference FFTs by scaling, adding, and negating their
+/// coefficients over the transform's twiddle field.
+impl<F: Field + Twiddle, R: Rank> Butterfly<F> for Polynomial<F, R> {
     fn scaled(&self, twiddle: &F) -> Self {
         let mut scaled = self.clone();
         scaled.scale(*twiddle);
@@ -592,7 +596,7 @@ impl<F: Field, R: Rank> udon::fft::reference::Butterfly<F> for Polynomial<F, R> 
 
     fn negated(&self) -> Self {
         let mut negated = self.clone();
-        negated.scale(-F::ONE);
+        negated.scale(-<F as Field>::ONE);
         negated
     }
 }

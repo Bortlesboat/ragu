@@ -5,7 +5,7 @@ use ragu_circuits::{
 use ragu_core::pasta::Fp;
 use ragu_testing::circuits::{MySimpleCircuit, SquareCircuit};
 use rand::{Rng, SeedableRng, rngs::StdRng};
-use udon::field::Field;
+use udon::field::PrimeField as Field;
 
 pub trait SetupRng<Out> {
     fn setup(self, rng: &mut StdRng) -> Out;

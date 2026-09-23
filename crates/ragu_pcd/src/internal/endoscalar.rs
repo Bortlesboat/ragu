@@ -34,7 +34,7 @@ use ragu_primitives::{
     vec::{FixedVec, Len},
 };
 use udon::{
-    curve::Affine,
+    curve::EndomorphismAffine as Affine,
     field::{FftField, Field},
 };
 
@@ -257,7 +257,7 @@ pub struct EndoscalingStepWitness<'source, C: Affine, const NUM_POINTS: usize> {
     pub points: &'source PointsWitness<C, NUM_POINTS>,
 }
 
-impl<C: Affine, R: Rank, const NUM_POINTS: usize> MultiStageCircuit<C::Base, R>
+impl<C: Affine<Base: FftField>, R: Rank, const NUM_POINTS: usize> MultiStageCircuit<C::Base, R>
     for EndoscalingStep<C, R, NUM_POINTS>
 {
     type Last = PointsStage<C, NUM_POINTS>;

@@ -29,7 +29,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::{GadgetExt as _, Point};
-use udon::curve::Affine;
+use udon::curve::EndomorphismAffine as Affine;
 
 use crate::internal::{
     endoscalar::{EndoscalarStage, Points, PointsStage},

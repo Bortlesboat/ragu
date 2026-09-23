@@ -12,7 +12,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::{Point, io::Write};
-use udon::curve::Affine;
+use udon::curve::EndomorphismAffine as Affine;
 
 use crate::{
     Proof,

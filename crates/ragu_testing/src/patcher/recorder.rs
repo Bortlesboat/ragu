@@ -690,7 +690,7 @@ struct Decomposition<F> {
 /// The [`Event::Lin`] combinations that recompose a boolean decomposition:
 /// every term is a [`Boolean::alloc`](ragu_primitives::Boolean::alloc) wire
 /// and the weights are a doubling chain `c, 2c, 4c, …` of at most
-/// [`Field::CAPACITY`] terms.
+/// [`PrimeField::CAPACITY`](udon::field::PrimeField::CAPACITY) terms.
 ///
 /// Such a combination admits exactly one boolean assignment per value of
 /// `out`: the weighted sums cover `c · [0, 2^n)`, injective because
@@ -772,12 +772,12 @@ fn deduce_decompositions<F: FftField>(
         let Some(inverse) = decomposition.base.invert() else {
             continue;
         };
-        let le_bits = udon::field::Field::to_le_bits(&(values[decomposition.out] * inverse));
+        let le_bits = (values[decomposition.out] * inverse).to_le_bits();
         for (i, &wire) in decomposition.bits.iter().enumerate() {
             if known[wire] {
                 continue;
             }
-            values[wire] = if le_bits[i] { F::ONE } else { F::ZERO };
+            values[wire] = if le_bits.as_ref()[i] { F::ONE } else { F::ZERO };
             known[wire] = true;
             progress = true;
         }

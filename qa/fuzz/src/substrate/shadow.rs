@@ -230,7 +230,9 @@ where
             }
             Op::AllocRaw(bytes) => {
                 // Mirrors the gadget: non-canonical bytes skip the push.
-                let v: Option<F> = F::from_bytes(bytes);
+                let mut repr = F::ZERO.to_bytes();
+                repr.as_mut().copy_from_slice(&bytes);
+                let v: Option<F> = F::from_bytes(repr);
                 value_fallible_pushes.push(v.is_some());
                 if let Some(honest) = v {
                     let slot = elems.len();

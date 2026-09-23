@@ -3,7 +3,7 @@ use ragu_core::{
     Error, Result,
     pasta::{Eq, Fp},
 };
-use udon::{curve::Projective, field::Field};
+use udon::{curve::Projective, field::PrimeField as Field};
 
 use super::hooks::FrameworkHooks;
 

@@ -4,7 +4,7 @@ use proptest::prelude::*;
 use ragu_core::pasta::Fp;
 use ragu_testing::strategies;
 use rand::Rng;
-use udon::curve::Affine;
+use udon::{curve::Affine, fft::reference};
 
 use super::{Polynomial, View};
 use crate::polynomials::{Rank, TestRank};
@@ -378,8 +378,8 @@ proptest! {
         let mut polys = alloc::vec![p0, p1, p2, p3];
         let originals: Vec<_> = polys.clone();
 
-        domain.transform::<Polynomial<Fp, R>>(&mut polys);
-        domain.inverse_transform::<Polynomial<Fp, R>>(&mut polys);
+        reference::transform(&mut polys, &domain.root());
+        reference::inverse_transform(&mut polys, &domain.inverse_root(), &domain.size_inverse());
 
         for (orig, result) in originals.iter().zip(polys.iter()) {
             prop_assert_eq!(orig.to_dense(), result.to_dense());
@@ -707,15 +707,15 @@ fn ring_convolution() {
         c.push(a_polys[i].revdot(&b_polys[i]));
     }
 
-    little.inverse_transform::<Polynomial<Fp, R>>(&mut a_polys);
+    reference::inverse_transform(&mut a_polys, &little.inverse_root(), &little.size_inverse());
     let a_polys_collapse = a_polys.clone();
     a_polys.resize(8, Default::default());
-    big.transform::<Polynomial<Fp, R>>(&mut a_polys);
+    reference::transform(&mut a_polys, &big.root());
 
-    little.inverse_transform::<Polynomial<Fp, R>>(&mut b_polys);
+    reference::inverse_transform(&mut b_polys, &little.inverse_root(), &little.size_inverse());
     let b_polys_collapse = b_polys.clone();
     b_polys.resize(8, Default::default());
-    big.transform::<Polynomial<Fp, R>>(&mut b_polys);
+    reference::transform(&mut b_polys, &big.root());
 
     let mut big_c = vec![];
     for (a, b) in a_polys.iter().zip(b_polys.iter()).take(8) {

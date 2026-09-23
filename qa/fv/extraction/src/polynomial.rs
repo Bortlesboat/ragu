@@ -533,6 +533,7 @@ pub fn parse_seed(hex: &str) -> core::result::Result<[u8; 32], String> {
 /// The field modulus as 64 lowercase hex digits, most significant first.
 fn modulus_hex<F: FftField>() -> String {
     F::MODULUS
+        .as_ref()
         .iter()
         .rev()
         .map(|limb| format!("{limb:016x}"))

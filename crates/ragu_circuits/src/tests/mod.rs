@@ -15,6 +15,7 @@ use ragu_core::{
 };
 use ragu_primitives::{Element, Simulator, allocator::Standard};
 use rand::Rng;
+use udon::field::PrimeField as Field;
 
 use crate::{
     Circuit, CircuitExt, WiringObject, WithAux, floor_planner, into_wiring_object,
@@ -165,14 +166,14 @@ fn test_simple_circuit() {
 
     let trace = MySimpleCircuit
         .trace((
-            <Fp as udon::field::Field>::from_limbs([
+            <Fp as Field>::from_limbs([
                 1833481853729904510,
                 5119040798866070668,
                 13106006979685074791,
                 104139735293675522,
             ])
             .expect("canonical limbs"),
-            <Fp as udon::field::Field>::from_limbs([
+            <Fp as Field>::from_limbs([
                 1114250137190507128,
                 15522336584428696251,
                 4689053926428793931,
@@ -203,14 +204,14 @@ fn test_simple_circuit() {
     let expected = MySimpleCircuit
         .ky(
             (
-                <Fp as udon::field::Field>::from_limbs([
+                <Fp as Field>::from_limbs([
                     2947731990920411638,
                     2194633309585215303,
                     17795060906113868723,
                     2381891845626402511,
                 ])
                 .expect("canonical limbs"),
-                <Fp as udon::field::Field>::from_limbs([
+                <Fp as Field>::from_limbs([
                     11756763772759733511,
                     10513277942061441772,
                     8416953053256280859,

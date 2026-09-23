@@ -167,7 +167,7 @@ fn push_field_element<F: FftField>(buf: &mut Vec<u8>, value: F) {
 }
 
 /// Append the field modulus as 32 little-endian bytes, parsed from the
-/// big-endian hex string [`Field::MODULUS`](udon::field::Field::MODULUS).
+/// big-endian hex string [`PrimeField::MODULUS`](udon::field::PrimeField::MODULUS).
 fn push_modulus<F: FftField>(buf: &mut Vec<u8>) {
     let hex = modulus_hex::<F>();
     assert_eq!(hex.len(), 64, "expected a 256-bit modulus");
@@ -232,6 +232,7 @@ pub fn digest_hex<F: FftField>(input_len: usize, ops: &[Op<F>], outputs: &[Expr<
 /// The field modulus as 64 lowercase hex digits, most significant first.
 fn modulus_hex<F: FftField>() -> String {
     F::MODULUS
+        .as_ref()
         .iter()
         .rev()
         .map(|limb| format!("{limb:016x}"))

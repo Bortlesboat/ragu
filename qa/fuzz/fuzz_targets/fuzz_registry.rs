@@ -74,6 +74,7 @@ use ragu_testing_fuzz::{
     substrate::{Limits, OpSet, Overrides, Program, ProgramCircuit, shadow_eval, steer},
     with_rank,
 };
+use udon::field::PrimeField as Field;
 
 /// Registering a circuit synthesizes it, so the count is what sets this
 /// target's cost per input. Six is enough to cross a power-of-two domain
@@ -168,7 +169,7 @@ struct Input {
 fn to_field(bytes: &[u8; 32]) -> Fp {
     let mut wide = [0u8; 64];
     wide[..32].copy_from_slice(bytes);
-    <Fp as udon::field::Field>::from_uniform_bytes(&wide)
+    <Fp as Field>::from_uniform_bytes(&wide)
 }
 
 fuzz_target!(|input: Input| {

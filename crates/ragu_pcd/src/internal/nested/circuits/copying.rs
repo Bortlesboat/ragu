@@ -25,7 +25,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::GadgetExt as _;
-use udon::curve::Affine;
+use udon::curve::EndomorphismAffine as Affine;
 
 use crate::internal::{
     Side,

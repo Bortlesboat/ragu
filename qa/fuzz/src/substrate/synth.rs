@@ -17,7 +17,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::{Boolean, Element, allocator::Allocator};
-use udon::field::{FftField, Field};
+use udon::field::{FftField, Field as _, PrimeField as Field};
 
 use super::{Op, Program, special_value};
 
@@ -274,7 +274,9 @@ where
                 elems.push(r);
             }
             Op::AllocRaw(bytes) => {
-                let v: Option<D::F> = D::F::from_bytes(bytes);
+                let mut repr = D::F::ZERO.to_bytes();
+                repr.as_mut().copy_from_slice(&bytes);
+                let v: Option<D::F> = D::F::from_bytes(repr);
                 if let Some(fp) = v
                     && let Ok(r) = Element::alloc(dr, allocator, D::just(move || fp))
                 {

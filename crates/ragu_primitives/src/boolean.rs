@@ -11,7 +11,7 @@ use ragu_core::{
     gadgets::{Gadget, Kind},
     maybe::Maybe,
 };
-use udon::field::{FftField, Field};
+use udon::field::{FftField, Field, PrimeField as _};
 
 use crate::{
     Element, GadgetExt,
@@ -330,10 +330,10 @@ pub(crate) fn decompose<'dr, D: Driver<'dr, F: FftField>>(
     allocator: &mut impl Allocator<'dr, D>,
     elem: &Element<'dr, D>,
 ) -> Result<Vec<Boolean<'dr, D>>> {
-    let le_bits = elem.value().map(udon::field::Field::to_le_bits);
+    let le_bits = elem.value().map(|value| value.to_le_bits());
     let bits = (0..D::F::CAPACITY as usize)
         .map(|i| {
-            let bit = le_bits.as_ref().map(move |le_bits| le_bits[i]);
+            let bit = le_bits.as_ref().map(move |le_bits| le_bits.as_ref()[i]);
             Boolean::alloc(dr, allocator, bit)
         })
         .collect::<Result<Vec<_>>>()?;

@@ -79,9 +79,12 @@ operations underlying polynomial evaluation and inner-product checks.
 ### Polynomial Multiplication
 
 [`multiply`] computes the coefficient convolution of two polynomials,
-using schoolbook multiplication or a reference FFT when the supplied scratch
-is sufficient and the transform is cheaper. Given polynomials $a(X)$ of degree $d_a$ and
-$b(X)$ of degree $d_b$, it produces $c(X) = a(X) \cdot b(X)$ of degree
+using schoolbook multiplication or the field's FFT when the supplied scratch
+is sufficient and the transform is cheaper. Pasta fields dispatch to Udon's
+optimized transforms through `FftField`.
+
+Given polynomials $a(X)$ of degree $d_a$ and $b(X)$ of degree $d_b$, it produces
+$c(X) = a(X) \cdot b(X)$ of degree
 $d_a + d_b$. Internally, both inputs are zero-padded to a power-of-two
 length, transformed into evaluation form via [`Domain::transform`],
 multiplied pointwise, and transformed back via
@@ -90,9 +93,9 @@ multiplied pointwise, and transformed back via
 Output and scratch are caller-supplied `&mut [F]` buffers, allowing their
 storage to be reused across multiplications.
 
-[`udon`]: https://github.com/tachyon-zcash/udon/tree/ragu-surface/crates/udon
-[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/ragu-surface/crates/udon/src/poly/mod.rs
-[`dot`]: https://github.com/tachyon-zcash/udon/blob/ragu-surface/crates/udon/src/field/products.rs
-[`multiply`]: https://github.com/tachyon-zcash/udon/blob/ragu-surface/crates/udon/src/poly/mod.rs
-[`Domain::transform`]: https://github.com/tachyon-zcash/udon/blob/ragu-surface/crates/udon/src/fft/domain.rs
-[`Domain::inverse_transform`]: https://github.com/tachyon-zcash/udon/blob/ragu-surface/crates/udon/src/fft/domain.rs
+[`udon`]: https://github.com/tachyon-zcash/udon/tree/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon
+[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/poly/mod.rs
+[`dot`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/field/products.rs
+[`multiply`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/poly/mod.rs
+[`Domain::transform`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/fft/generic.rs
+[`Domain::inverse_transform`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/fft/generic.rs

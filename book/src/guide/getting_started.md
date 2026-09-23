@@ -22,11 +22,9 @@ Add Ragu to your `Cargo.toml`:
 [dependencies]
 ragu_circuits = "0.1"
 ragu_core = "0.1"
-ragu_pasta = { version = "0.1", features = ["baked"] }
-ragu_pcd = "0.1"
+ragu_pcd = { version = "0.1", features = ["baked"] }
 ragu_primitives = "0.1"
-ragu_arithmetic = "0.1"
-ff = "0.14"
+udon = { package = "zakura-udon", git = "https://github.com/tachyon-zcash/udon", rev = "741adeea4888d31652087436d9fa99c7f78fe6d9" }
 rand = "0.10"
 ```
 
@@ -60,7 +58,7 @@ Headers define what data flows through the proof tree. This example uses two
 types:
 
 ```rust
-use ff::Field;
+use udon::field::Field;
 use ragu_core::{Result, drivers::{Driver, DriverValue}, gadgets::{Bound, Kind}, maybe::Maybe};
 use ragu_pcd::header::{Header, Suffix};
 use ragu_primitives::allocator::{Allocator, Standard};
@@ -115,7 +113,7 @@ impl<F: Field> Header<F> for InternalNode {
 This step creates leaf proofs from raw values:
 
 ```rust
-use ragu_arithmetic::Cycle;
+use ragu_core::Cycle;
 use ragu_pcd::step::{Encoded, Index, Step};
 use ragu_primitives::poseidon::Sponge;
 
@@ -253,13 +251,13 @@ The application is configured and built as follows:
 
 ```rust
 use ragu_circuits::polynomials::R;
-use ragu_pasta::{Fp, Pasta};
+use ragu_core::pasta::{Fp, Pasta};
 use ragu_pcd::ApplicationBuilder;
 use rand::{SeedableRng, rngs::StdRng};
 
 fn main() -> Result<()> {
     // 1. Initialize Pasta curve parameters
-    let pasta = Pasta::baked();
+    let pasta = ragu_pcd::pasta::baked();
     let mut rng = StdRng::seed_from_u64(12345);
 
     // 2. Build application with our steps

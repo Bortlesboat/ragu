@@ -480,6 +480,8 @@ impl<F: FftField, R: Rank> Registry<'_, F, R> {
         }
 
         // Convert from the Lagrange basis.
+        // TODO: give registry transforms reusable Udon tables and scratch,
+        // plus a caller-selected executor.
         let domain = &self.domain;
         domain.inverse_transform(&mut coeffs[..domain.size()]);
 
@@ -739,6 +741,8 @@ impl<F: FftField, R: Rank> RegistryAt<'_, F, R> {
 
     /// Evaluate the registry polynomial at the point ($W$, $X$, $Y$).
     pub fn xy(&self, x: F, y: F) -> F {
+        // TODO: use Udon's deferred product accumulation for these weighted
+        // evaluations to share Montgomery reduction across the sum.
         let mut result: F = self.registry.w_cached(
             &self.cache,
             || F::ZERO,

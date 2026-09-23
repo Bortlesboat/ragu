@@ -89,6 +89,8 @@ impl<F: Field> Default for DirectSum<F> {
 
 impl<F: Field> LinearExpression<F, F> for DirectSum<F> {
     fn add_term(mut self, wire: &F, coeff: Coeff<F>) -> Self {
+        // TODO: defer reduction of product terms with Udon's accumulation APIs,
+        // preserving signed coefficients, gains, and cheap constant cases.
         match coeff * self.current_gain {
             Coeff::Zero => {}
             Coeff::One => self.value += *wire,

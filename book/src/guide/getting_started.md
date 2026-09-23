@@ -24,7 +24,7 @@ ragu_circuits = "0.1"
 ragu_core = "0.1"
 ragu_pcd = { version = "0.1", features = ["baked"] }
 ragu_primitives = "0.1"
-udon = { package = "zakura-udon", git = "https://github.com/tachyon-zcash/udon", rev = "741adeea4888d31652087436d9fa99c7f78fe6d9" }
+udon = { package = "zakura-udon", git = "https://github.com/tachyon-zcash/udon", rev = "e9bf1f97accc447f5968a6e6f71445929d6855cc" }
 rand = "0.10"
 ```
 

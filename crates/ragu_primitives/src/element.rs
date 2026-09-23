@@ -598,6 +598,8 @@ pub fn multiadd<'dr, D: Driver<'dr>>(
 ) -> Element<'dr, D> {
     assert_eq!(values.len(), coeffs.len());
     let value = D::just(|| {
+        // TODO: use Field::sum_of_product_pairs so Pasta can share a Montgomery
+        // reduction across this sum, including Poseidon MDS rows.
         let mut sum = D::F::ZERO;
         for (value, coeff) in values.iter().zip(coeffs) {
             sum += *value.value().take() * *coeff;

@@ -85,8 +85,8 @@ blake2b_simd = { version = "1.0", default-features = false }
 pasta_curves = { package = "zakura-pasta-curves", version = "1.1.0", default-features = false, features = ["alloc"] }
 maybe-rayon = { package = "tachyon-maybe-rayon", version = "0.1.2", default-features = false }
 # Bento stores the generated Udon points; keep these revisions together.
-bento = { package = "zakura-bento", git = "https://github.com/tachyon-zcash/udon", rev = "741adeea4888d31652087436d9fa99c7f78fe6d9", default-features = false }
+bento = { package = "zakura-bento", git = "https://github.com/tachyon-zcash/udon", rev = "e9bf1f97accc447f5968a6e6f71445929d6855cc", default-features = false }
 # Udon supplies the Pasta fields, curves, and generic arithmetic traits.
 # Keep this revision in sync with qa/fuzz/Cargo.toml.
-udon = { package = "zakura-udon", git = "https://github.com/tachyon-zcash/udon", rev = "741adeea4888d31652087436d9fa99c7f78fe6d9", default-features = false }
+udon = { package = "zakura-udon", git = "https://github.com/tachyon-zcash/udon", rev = "e9bf1f97accc447f5968a6e6f71445929d6855cc", default-features = false }
 criterion = { version = "0.5", default-features = false }

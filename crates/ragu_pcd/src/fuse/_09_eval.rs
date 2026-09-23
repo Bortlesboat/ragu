@@ -4,13 +4,13 @@
 //! of every element that was also queried in the `query` stage. The evaluation
 //! $f(u)$ is derived from the aforementioned evaluations.
 
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_circuits::{
     polynomials::{Rank, sparse},
     staging::StageExt,
 };
-use ragu_core::{Result, drivers::Driver, maybe::Maybe};
+use ragu_core::{Cycle, Result, drivers::Driver, maybe::Maybe};
 use ragu_primitives::Element;
+use rand::CryptoRng;
 
 use super::{NativeSPrime, RegistryWy};
 use crate::{Application, Proof, internal::native, proof::ProofBuilder};
@@ -65,7 +65,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &ProofBuilder<'_, C, R, B>,
     ) -> Result<(sparse::Polynomial<C::CircuitField, R>, C::NestedCurve)> {
         let eval_rx = native::stages::eval::Stage::<C, R, HEADER_SIZE>::rx(
-            C::CircuitField::random(&mut *rng),
+            udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
             eval_witness,
         )?;
         let native_eval_commitment =

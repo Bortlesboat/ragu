@@ -1,5 +1,4 @@
-use group::CurveAffine;
-use ragu_pasta::{EpAffine, Fp};
+use ragu_core::pasta::{EpAffine, Fp};
 use ragu_primitives::{NonzeroBank, Point};
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireCollector, WireDeserializer};
@@ -18,7 +17,7 @@ impl CircuitInstance for PointAddIncompleteInstance {
 
         // Reuse a constant point as a structural template, then substitute the
         // raw input wires into its `[x, y]` gadget fields.
-        let point_template = Point::constant(dr, EpAffine::generator())?;
+        let point_template = Point::constant(dr, EpAffine::GENERATOR)?;
         let p1 = WireDeserializer::new(input_wires_1).into_gadget(&point_template)?;
         let p2 = WireDeserializer::new(input_wires_2).into_gadget(&point_template)?;
 

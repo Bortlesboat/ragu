@@ -9,14 +9,14 @@
 use alloc::{sync::Arc, vec::Vec};
 use core::{cell::OnceCell, marker::PhantomData};
 
-use ragu_arithmetic::{Cycle, ff::Field};
 use ragu_backend::Backend;
 use ragu_circuits::{
     polynomials::{Rank, sparse},
     registry::CircuitIndex,
     staging::StageExt,
 };
-use ragu_core::Result;
+use ragu_core::{Cycle, Result};
+use udon::field::Field;
 
 use super::{Cached, Proof};
 use crate::internal::nested;
@@ -568,7 +568,7 @@ impl<'params, C: Cycle, R: Rank, B: Backend> ProofBuilder<'params, C, R, B> {
             nested::RxIndex::BridgeEval => 4,
             _ => panic!("not a cached bridge: {idx:?}"),
         };
-        self.bridge_alpha.pow_vartime([n])
+        self.bridge_alpha.pow_u64(n)
     }
 
     cached_bridge!(

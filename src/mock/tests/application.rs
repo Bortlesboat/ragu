@@ -1,11 +1,10 @@
 use alloc::vec::Vec;
 
-use ragu_arithmetic::{
-    group::Group as _,
-    rand::{SeedableRng as _, rngs::StdRng},
+use ragu_core::{
+    Error, Result,
+    pasta::{Ep, Eq, Fp, Fq},
 };
-use ragu_core::{Error, Result};
-use ragu_pasta::{Ep, Eq, Fp, Fq};
+use rand::{SeedableRng as _, rngs::StdRng};
 
 use crate::{
     Application, ApplicationBuilder, Header, Index, PROOF_SIZE_COMPRESSED, Pcd, Proof, Step,
@@ -732,7 +731,7 @@ fn header_with_point_round_trips() {
     let app = point_app();
 
     let (pcd, ()) = app
-        .seed(&mut rng, PointSeedStep, Eq::generator())
+        .seed(&mut rng, PointSeedStep, Eq::GENERATOR)
         .expect("seed with a non-identity point");
     assert!(app.verify(&pcd, &mut rng).expect("verify"));
 }
@@ -744,7 +743,7 @@ fn identity_point_in_output_header_fails_fuse() {
 
     assert!(
         matches!(
-            app.seed(&mut rng, PointSeedStep, Eq::identity()),
+            app.seed(&mut rng, PointSeedStep, Eq::IDENTITY),
             Err(Error::InvalidWitness(_))
         ),
         "identity point in output header must fail"
@@ -763,7 +762,7 @@ fn identity_point_in_input_header_fails_fuse() {
         .expect("finalize");
 
     let bad_left = Proof::trivial().carry::<PointHeader>(PointHeaderData {
-        commitment: Eq::identity(),
+        commitment: Eq::IDENTITY,
     });
     let right = Proof::trivial().carry::<()>(());
 
@@ -782,10 +781,10 @@ fn identity_point_in_carried_data_errors_verify() {
     let app = point_app();
 
     let (pcd, ()) = app
-        .seed(&mut rng, PointSeedStep, Eq::generator())
+        .seed(&mut rng, PointSeedStep, Eq::GENERATOR)
         .expect("seed with a non-identity point");
     let bad_pcd = pcd.proof.carry::<PointHeader>(PointHeaderData {
-        commitment: Eq::identity(),
+        commitment: Eq::IDENTITY,
     });
 
     // Errs rather than returning `Ok(false)`: re-encoding such a header

@@ -11,13 +11,13 @@
 
 use alloc::vec::Vec;
 
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_circuits::{
     polynomials::{Rank, sparse},
     staging::StageExt,
 };
-use ragu_core::{Result, drivers::Driver, maybe::Maybe};
+use ragu_core::{Cycle, Result, drivers::Driver, maybe::Maybe};
 use ragu_primitives::Element;
+use rand::CryptoRng;
 
 use super::{NativeF, NativeSPrime, RegistryWy};
 use crate::{
@@ -77,7 +77,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &mut ProofBuilder<'_, C, R, B>,
     ) -> Result<()> {
         let bridge_rx = nested::stages::f::Stage::<C::HostCurve, R>::rx(
-            C::ScalarField::random(&mut *rng),
+            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
             &nested::stages::f::Witness {
                 native_f: native.commitment,
             },
@@ -104,7 +104,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
     where
         D: Driver<'dr, F = C::CircuitField>,
     {
-        use ragu_arithmetic::factor_iter;
+        use udon::poly::divide_by_root_iter;
 
         let w = *w.value().take();
         let y = *y.value().take();
@@ -120,67 +120,81 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         let mut iters: Vec<_> = STATIC_F_QUERIES
             .into_iter()
             .map(|query| match query {
-                StaticFQuery::LeftP => factor_iter(left.native_p_poly().iter_coeffs(), left.u()),
-                StaticFQuery::RightP => factor_iter(right.native_p_poly().iter_coeffs(), right.u()),
+                StaticFQuery::LeftP => {
+                    divide_by_root_iter(left.native_p_poly().iter_coeffs(), left.u())
+                }
+                StaticFQuery::RightP => {
+                    divide_by_root_iter(right.native_p_poly().iter_coeffs(), right.u())
+                }
                 StaticFQuery::LeftRegistryXyAtW => {
-                    factor_iter(left.native_registry_xy_poly().iter_coeffs(), w)
+                    divide_by_root_iter(left.native_registry_xy_poly().iter_coeffs(), w)
                 }
                 StaticFQuery::RightRegistryXyAtW => {
-                    factor_iter(right.native_registry_xy_poly().iter_coeffs(), w)
+                    divide_by_root_iter(right.native_registry_xy_poly().iter_coeffs(), w)
                 }
                 StaticFQuery::RegistryWx0AtLeftY => {
-                    factor_iter(s_prime.registry_wx0_poly.iter_coeffs(), left.y())
+                    divide_by_root_iter(s_prime.registry_wx0_poly.iter_coeffs(), left.y())
                 }
                 StaticFQuery::RegistryWx1AtRightY => {
-                    factor_iter(s_prime.registry_wx1_poly.iter_coeffs(), right.y())
+                    divide_by_root_iter(s_prime.registry_wx1_poly.iter_coeffs(), right.y())
                 }
                 StaticFQuery::RegistryWx0AtY => {
-                    factor_iter(s_prime.registry_wx0_poly.iter_coeffs(), y)
+                    divide_by_root_iter(s_prime.registry_wx0_poly.iter_coeffs(), y)
                 }
                 StaticFQuery::RegistryWx1AtY => {
-                    factor_iter(s_prime.registry_wx1_poly.iter_coeffs(), y)
+                    divide_by_root_iter(s_prime.registry_wx1_poly.iter_coeffs(), y)
                 }
                 StaticFQuery::RegistryWyAtLeftX => {
-                    factor_iter(registry_wy.poly.iter_coeffs(), left.x())
+                    divide_by_root_iter(registry_wy.poly.iter_coeffs(), left.x())
                 }
                 StaticFQuery::RegistryWyAtRightX => {
-                    factor_iter(registry_wy.poly.iter_coeffs(), right.x())
+                    divide_by_root_iter(registry_wy.poly.iter_coeffs(), right.x())
                 }
-                StaticFQuery::RegistryWyAtX => factor_iter(registry_wy.poly.iter_coeffs(), x),
+                StaticFQuery::RegistryWyAtX => {
+                    divide_by_root_iter(registry_wy.poly.iter_coeffs(), x)
+                }
                 StaticFQuery::RegistryXyAtW => {
-                    factor_iter(builder.native_registry_xy_poly().iter_coeffs(), w)
+                    divide_by_root_iter(builder.native_registry_xy_poly().iter_coeffs(), w)
                 }
-                StaticFQuery::RegistryXyAtLeftCircuitId => factor_iter(
+                StaticFQuery::RegistryXyAtLeftCircuitId => divide_by_root_iter(
                     builder.native_registry_xy_poly().iter_coeffs(),
                     left.circuit_id().omega_j(),
                 ),
-                StaticFQuery::RegistryXyAtRightCircuitId => factor_iter(
+                StaticFQuery::RegistryXyAtRightCircuitId => divide_by_root_iter(
                     builder.native_registry_xy_poly().iter_coeffs(),
                     right.circuit_id().omega_j(),
                 ),
-                StaticFQuery::LeftAbAAtXz => factor_iter(left[RxComponent::AbA].iter_coeffs(), xz),
-                StaticFQuery::LeftAbBAtX => factor_iter(left[RxComponent::AbB].iter_coeffs(), x),
+                StaticFQuery::LeftAbAAtXz => {
+                    divide_by_root_iter(left[RxComponent::AbA].iter_coeffs(), xz)
+                }
+                StaticFQuery::LeftAbBAtX => {
+                    divide_by_root_iter(left[RxComponent::AbB].iter_coeffs(), x)
+                }
                 StaticFQuery::RightAbAAtXz => {
-                    factor_iter(right[RxComponent::AbA].iter_coeffs(), xz)
+                    divide_by_root_iter(right[RxComponent::AbA].iter_coeffs(), xz)
                 }
-                StaticFQuery::RightAbBAtX => factor_iter(right[RxComponent::AbB].iter_coeffs(), x),
+                StaticFQuery::RightAbBAtX => {
+                    divide_by_root_iter(right[RxComponent::AbB].iter_coeffs(), x)
+                }
                 StaticFQuery::CurrentAAtXz => {
-                    factor_iter(builder.native_a_poly().iter_coeffs(), xz)
+                    divide_by_root_iter(builder.native_a_poly().iter_coeffs(), xz)
                 }
-                StaticFQuery::CurrentBAtX => factor_iter(builder.native_b_poly().iter_coeffs(), x),
+                StaticFQuery::CurrentBAtX => {
+                    divide_by_root_iter(builder.native_b_poly().iter_coeffs(), x)
+                }
             })
             .collect();
         // Per-rx evaluations at xz only. The same r_i(xz) values feed
         // into both A(xz) (undilated) and B(x) (Z-dilated).
         for proof in [left, right] {
             for &id in &RxIndex::ALL {
-                iters.push(factor_iter(proof[id].iter_coeffs(), xz));
+                iters.push(divide_by_root_iter(proof[id].iter_coeffs(), xz));
             }
         }
 
         // m(\omega^j, x, y) evaluations for each internal index j
         for &id in &native::InternalCircuitIndex::ALL {
-            iters.push(factor_iter(
+            iters.push(divide_by_root_iter(
                 builder.native_registry_xy_poly().iter_coeffs(),
                 omega_j(id),
             ));

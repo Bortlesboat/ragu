@@ -67,15 +67,13 @@
 #![no_main]
 
 use arbitrary::Arbitrary;
-use ff::Field;
-use ff::PrimeField;
 use libfuzzer_sys::fuzz_target;
-use pasta_curves::Fp;
 use ragu_circuits::{
     CircuitExt, Trace,
     polynomials::{Rank, TestRank, sparse},
     registry::{CircuitIndex, Registry, RegistryBuilder},
 };
+use ragu_core::pasta::Fp;
 use ragu_testing_fuzz::substrate::{
     Capabilities, Limits, Op, OpSet, Overrides, Preamble, Program, ProgramCircuit, shadow_eval,
 };

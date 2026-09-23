@@ -13,13 +13,13 @@
 use alloc::borrow::Cow;
 use core::iter::{once, repeat_n};
 
-use ragu_arithmetic::ff::PrimeField;
 use ragu_circuits::{
     polynomials::{Rank, sparse},
     registry::CircuitIndex,
 };
 use ragu_core::{Result, drivers::Driver};
 use ragu_primitives::Element;
+use udon::field::FftField;
 
 use super::{InternalCircuitIndex, RxComponent, RxIndex};
 use crate::internal::claims::{Builder, Source, sum_polynomials};
@@ -99,7 +99,7 @@ pub trait Processor<Rx, AppCircuitId> {
     ) -> Result<()>;
 }
 
-impl<'m, 'rx, F: PrimeField, R: Rank, B: ragu_backend::Backend>
+impl<'m, 'rx, F: FftField, R: Rank, B: ragu_backend::Backend>
     Processor<&'rx sparse::Polynomial<F, R>, CircuitIndex>
     for Builder<'m, 'rx, Cow<'rx, sparse::Polynomial<F, R>>, F, R, B>
 {

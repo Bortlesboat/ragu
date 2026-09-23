@@ -1,4 +1,4 @@
-use ragu_arithmetic::ff::Field;
+use udon::field::Field;
 
 use super::Coeff;
 
@@ -112,10 +112,10 @@ mod tests {
     use alloc::vec;
 
     use proptest::prelude::*;
-    use ragu_pasta::Fp;
     use ragu_testing::strategies;
 
     use super::*;
+    use crate::pasta::Fp;
 
     #[test]
     fn test_linexp_direct() {
@@ -488,14 +488,24 @@ mod tests {
         Gain(Coeff<Fp>),
     }
 
+    /// Every coefficient variant, over this crate's own [`Coeff`]: the shared
+    /// strategy in `ragu_testing` yields the dev-dependency's copy of the type.
+    fn arb_coeff() -> impl Strategy<Value = Coeff<Fp>> {
+        prop_oneof![
+            Just(Coeff::Zero),
+            Just(Coeff::One),
+            Just(Coeff::Two),
+            Just(Coeff::NegativeOne),
+            strategies::prime_field_element::<Fp>().prop_map(Coeff::Arbitrary),
+            strategies::nonzero_prime_field_element::<Fp>().prop_map(Coeff::NegativeArbitrary),
+        ]
+    }
+
     fn arb_op() -> impl Strategy<Value = Op> {
         prop_oneof![
-            (
-                strategies::prime_field_element::<Fp>(),
-                strategies::coeff::<Fp>()
-            )
+            (strategies::prime_field_element::<Fp>(), arb_coeff())
                 .prop_map(|(w, c)| Op::AddTerm(w, c)),
-            strategies::coeff::<Fp>().prop_map(Op::Gain),
+            arb_coeff().prop_map(Op::Gain),
         ]
     }
 

@@ -18,11 +18,6 @@
 
 use alloc::vec;
 
-use ragu_arithmetic::{
-    CurveAffine,
-    ff::{Field, WithSmallOrderMulGroup},
-    pasta_curves::group::{Curve, WnafBase, WnafScalar},
-};
 use ragu_circuits::{
     WithAux,
     polynomials::Rank,
@@ -37,6 +32,10 @@ use ragu_core::{
 use ragu_primitives::{
     Endoscalar, GadgetExt, NonzeroBank, Point,
     vec::{FixedVec, Len},
+};
+use udon::{
+    curve::Affine,
+    field::{FftField, Field},
 };
 
 /// Number of endoscaling operations per step. This is how many we can fit into
@@ -100,7 +99,7 @@ impl<F: Field, R: Rank> Stage<F, R> for EndoscalarStage {
 
 /// Witness for the points stage: initial, inputs, and interstitials.
 #[derive(Clone)]
-pub struct PointsWitness<C: CurveAffine, const NUM_POINTS: usize> {
+pub struct PointsWitness<C: Affine, const NUM_POINTS: usize> {
     /// Initial accumulator (base case for step 0).
     pub initial: C,
     /// Inputs (length = NUM_POINTS - 1).
@@ -109,9 +108,9 @@ pub struct PointsWitness<C: CurveAffine, const NUM_POINTS: usize> {
     pub interstitials: FixedVec<C, NumStepsLen<NUM_POINTS>>,
 }
 
-impl<C: CurveAffine, const NUM_POINTS: usize> PointsWitness<C, NUM_POINTS>
+impl<C: Affine, const NUM_POINTS: usize> PointsWitness<C, NUM_POINTS>
 where
-    C::Scalar: WithSmallOrderMulGroup<3>,
+    C::Scalar: FftField,
 {
     /// Creates a new `PointsWitness` from points and an endoscalar.
     ///
@@ -132,15 +131,16 @@ where
 
         // Compute interstitials using chunked Horner iteration
         let mut interstitials = vec::Vec::with_capacity(NumStepsLen::<NUM_POINTS>::len());
-        let mut acc = initial.to_curve();
+        let mut acc = initial.to_projective();
 
         if points.is_empty() {
             interstitials.push(acc);
         } else {
-            let wnaf_scalar = WnafScalar::<C::Scalar, ENDOSCALINGS_PER_STEP>::new(&endoscalar);
+            // Horner step: `acc <- acc * endoscalar + input`, the fixed scalar
+            // applied to a fresh base each time.
             for chunk in points.chunks(ENDOSCALINGS_PER_STEP) {
                 for input in chunk {
-                    acc = &WnafBase::new(acc) * &wnaf_scalar + input.to_curve();
+                    acc = acc * endoscalar + input.to_projective();
                 }
                 interstitials.push(acc);
             }
@@ -149,7 +149,7 @@ where
         let interstitials = {
             // Batch normalize projective points to affine
             let mut tmp = vec![C::identity(); interstitials.len()];
-            C::Curve::batch_normalize(&interstitials, &mut tmp);
+            C::batch_to_affine(&interstitials, &mut tmp);
             FixedVec::new(tmp).expect("correct length")
         };
 
@@ -163,7 +163,7 @@ where
 
 /// Output gadget containing initial, inputs, and interstitials. See [`PointsWitness`].
 #[derive(Gadget)]
-pub struct Points<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>, const NUM_POINTS: usize> {
+pub struct Points<'dr, D: Driver<'dr>, C: Affine<Base = D::F>, const NUM_POINTS: usize> {
     #[ragu(gadget)]
     pub initial: Point<'dr, D, C>,
     #[ragu(gadget)]
@@ -174,11 +174,9 @@ pub struct Points<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>, const NUM_PO
 
 /// Stage for allocating all point witnesses (inputs and interstitials).
 #[derive(Default)]
-pub struct PointsStage<C: CurveAffine, const NUM_POINTS: usize>(core::marker::PhantomData<C>);
+pub struct PointsStage<C: Affine, const NUM_POINTS: usize>(core::marker::PhantomData<C>);
 
-impl<C: CurveAffine, R: Rank, const NUM_POINTS: usize> Stage<C::Base, R>
-    for PointsStage<C, NUM_POINTS>
-{
+impl<C: Affine, R: Rank, const NUM_POINTS: usize> Stage<C::Base, R> for PointsStage<C, NUM_POINTS> {
     type Parent = EndoscalarStage;
 
     fn values() -> usize {
@@ -220,12 +218,12 @@ impl<C: CurveAffine, R: Rank, const NUM_POINTS: usize> Stage<C::Base, R>
 ///
 /// The circuit constrains that `interstitials[step]` equals the Horner result.
 #[derive(Clone)]
-pub struct EndoscalingStep<C: CurveAffine, R: Rank, const NUM_POINTS: usize> {
+pub struct EndoscalingStep<C: Affine, R: Rank, const NUM_POINTS: usize> {
     step: usize,
     _marker: core::marker::PhantomData<(C, R)>,
 }
 
-impl<C: CurveAffine, R: Rank, const NUM_POINTS: usize> EndoscalingStep<C, R, NUM_POINTS> {
+impl<C: Affine, R: Rank, const NUM_POINTS: usize> EndoscalingStep<C, R, NUM_POINTS> {
     /// Creates a new endoscaling step.
     ///
     /// Panics if `step >= NumStepsLen::<NUM_POINTS>::len()`.
@@ -252,14 +250,14 @@ impl<C: CurveAffine, R: Rank, const NUM_POINTS: usize> EndoscalingStep<C, R, NUM
 }
 
 /// Witness for an endoscaling step.
-pub struct EndoscalingStepWitness<'source, C: CurveAffine, const NUM_POINTS: usize> {
+pub struct EndoscalingStepWitness<'source, C: Affine, const NUM_POINTS: usize> {
     /// The endoscalar value.
     pub endoscalar: u128,
     /// Point witnesses (inputs and interstitials).
     pub points: &'source PointsWitness<C, NUM_POINTS>,
 }
 
-impl<C: CurveAffine, R: Rank, const NUM_POINTS: usize> MultiStageCircuit<C::Base, R>
+impl<C: Affine, R: Rank, const NUM_POINTS: usize> MultiStageCircuit<C::Base, R>
     for EndoscalingStep<C, R, NUM_POINTS>
 {
     type Last = PointsStage<C, NUM_POINTS>;
@@ -328,11 +326,6 @@ impl<C: CurveAffine, R: Rank, const NUM_POINTS: usize> MultiStageCircuit<C::Base
 mod tests {
     use alloc::vec::Vec;
 
-    use ragu_arithmetic::{
-        ff::Field,
-        pasta_curves::group::{Curve, CurveAffine as _, Group},
-        rand::RngExt,
-    };
     use ragu_circuits::{
         CircuitExt,
         polynomials::{self},
@@ -342,10 +335,12 @@ mod tests {
         Result,
         drivers::emulator::{Emulator, Wired},
         maybe::Maybe,
+        pasta::{Ep, EpAffine, Fp, Fq},
     };
-    use ragu_pasta::{Ep, EpAffine, Fp, Fq};
     use ragu_primitives::{Endoscalar, vec::Len};
     use ragu_testing::registry::TestRegistryBuilder;
+    use rand::{Rng, RngExt};
+    use udon::curve::Projective;
 
     use super::{
         ENDOSCALINGS_PER_STEP, EndoscalarStage, EndoscalingStep, EndoscalingStepWitness, InputsLen,
@@ -373,9 +368,9 @@ mod tests {
         assert!(!inputs.is_empty());
         let e: Fq = compute_effective_scalar(endo);
 
-        let mut acc = inputs[0].to_curve();
+        let mut acc = inputs[0].to_projective();
         for input in &inputs[1..] {
-            acc = acc * e + input.to_curve();
+            acc = acc * e + input.to_projective();
         }
         acc.to_affine()
     }
@@ -426,10 +421,13 @@ mod tests {
         let num_steps = NumStepsLen::<NUM_POINTS>::len();
 
         // Generate random endoscalar and base input points.
-        let endoscalar: u128 = ragu_arithmetic::rand::rng().random();
+        let endoscalar: u128 = rand::rng().random();
         let base_inputs: [EpAffine; NUM_POINTS] = core::array::from_fn(|_| {
-            (Ep::generator() * <Ep as Group>::Scalar::random(&mut ragu_arithmetic::rand::rng()))
-                .to_affine()
+            (Ep::GENERATOR
+                * udon::field::random::<<Ep as Projective>::Scalar>(|bytes| {
+                    rand::rng().fill_bytes(bytes)
+                }))
+            .to_affine()
         });
 
         // Compute expected final result via Horner over all base inputs.
@@ -465,7 +463,7 @@ mod tests {
                 .into_output();
             let final_rx = registry.assemble(&final_trace, staged_h, Fp::ZERO)?;
 
-            let y = Fp::random(&mut ragu_arithmetic::rand::rng());
+            let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
 
             // Verify revdot identities for each stage.
             assert_eq!(endoscalar_rx.revdot(&registry.y(endo_mask_h, y)), Fp::ZERO);
@@ -498,10 +496,13 @@ mod tests {
         assert_eq!(InputsLen::<NUM_POINTS>::len(), 10);
 
         // Generate random endoscalar and base input points.
-        let endoscalar: u128 = ragu_arithmetic::rand::rng().random();
+        let endoscalar: u128 = rand::rng().random();
         let base_inputs: [EpAffine; NUM_POINTS] = core::array::from_fn(|_| {
-            (Ep::generator() * <Ep as Group>::Scalar::random(&mut ragu_arithmetic::rand::rng()))
-                .to_affine()
+            (Ep::GENERATOR
+                * udon::field::random::<<Ep as Projective>::Scalar>(|bytes| {
+                    rand::rng().fill_bytes(bytes)
+                }))
+            .to_affine()
         });
 
         // Compute expected final result via Horner over all base inputs.
@@ -533,7 +534,7 @@ mod tests {
                 .into_output();
             let final_rx = registry.assemble(&final_trace, staged_h, Fp::ZERO)?;
 
-            let y = Fp::random(&mut ragu_arithmetic::rand::rng());
+            let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
 
             let endoscalar_rx = <EndoscalarStage as StageExt<Fp, R>>::rx(Fp::ZERO, endoscalar)?;
             let points_rx =
@@ -641,10 +642,13 @@ mod tests {
     fn test_points_witness_new() {
         /// Verifies PointsWitness::new produces identical results to manual construction.
         fn check<const NUM_POINTS: usize>() {
-            let endoscalar: u128 = ragu_arithmetic::rand::rng().random();
+            let endoscalar: u128 = rand::rng().random();
             let base_inputs: [EpAffine; NUM_POINTS] = core::array::from_fn(|_| {
-                (Ep::generator() * <Ep as Group>::Scalar::random(&mut ragu_arithmetic::rand::rng()))
-                    .to_affine()
+                (Ep::GENERATOR
+                    * udon::field::random::<<Ep as Projective>::Scalar>(|bytes| {
+                        rand::rng().fill_bytes(bytes)
+                    }))
+                .to_affine()
             });
 
             // Compute via PointsWitness::new

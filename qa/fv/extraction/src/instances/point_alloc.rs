@@ -1,5 +1,4 @@
-use group::CurveAffine;
-use ragu_pasta::{EpAffine, EqAffine, Fp, Fq};
+use ragu_core::pasta::{EpAffine, EqAffine, Fp, Fq};
 use ragu_primitives::Point;
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireCollector};
@@ -14,7 +13,7 @@ impl CircuitInstance for PointAllocInstanceFp {
         D: InstanceDriver<'dr, F = Fp>,
     {
         // MaybeKind = Empty: the closure is never called.
-        let assignment = D::just(EpAffine::identity);
+        let assignment = D::just(|| EpAffine::IDENTITY);
         let point = Point::<_, EpAffine>::alloc(dr, assignment)?;
 
         // NOTE: assumes that the serialization is [x, y].
@@ -35,7 +34,7 @@ impl CircuitInstance for PointAllocInstanceFq {
         D: InstanceDriver<'dr, F = Fq>,
     {
         // MaybeKind = Empty: the closure is never called.
-        let assignment = D::just(EqAffine::identity);
+        let assignment = D::just(|| EqAffine::IDENTITY);
         let point = Point::<_, EqAffine>::alloc(dr, assignment)?;
 
         // NOTE: assumes that the serialization is [x, y].

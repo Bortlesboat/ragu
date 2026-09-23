@@ -104,13 +104,8 @@ use std::sync::LazyLock;
 
 use arbitrary::Arbitrary;
 use libfuzzer_sys::fuzz_target;
-use ragu_arithmetic::{Cycle, ff::PrimeFieldBits};
 use ragu_circuits::Circuit;
-use ragu_core::Result;
-// The fields must come from the cycle's own dependency graph: the fuzz
-// crate's direct `pasta_curves` is a distinct instance and would not unify
-// with `<Pasta as Cycle>::CircuitField`.
-use ragu_pasta::Pasta;
+use ragu_core::{Cycle, Result, pasta::Pasta};
 use ragu_pcd::{
     Application,
     fuzzing::patcher::{
@@ -127,6 +122,7 @@ use ragu_testing_fuzz::{
     source_shape::analyze_source_shape,
 };
 use rand::{SeedableRng, rngs::StdRng};
+use udon::field::FftField;
 
 type NativeField = <Pasta as Cycle>::CircuitField;
 type NestedField = <Pasta as Cycle>::ScalarField;
@@ -273,7 +269,7 @@ impl<F> Captured<F> {
 
 /// Captures one circuit, checks its spec statically, and classifies its
 /// wires.
-fn collect<'w, F: PrimeFieldBits, Cir: Circuit<F>>(
+fn collect<'w, F: FftField, Cir: Circuit<F>>(
     point: Point,
     spec: &CircuitSpec,
     circuit: &Cir,
@@ -589,11 +585,7 @@ fuzz_target!(
 
 /// One fuzz iteration: resolve the cheats onto the captured circuit and
 /// probe.
-fn probe<F: PrimeFieldBits>(
-    circuit: &Captured<F>,
-    input: &Input,
-    replay: impl Fn(&[F]) -> Option<bool>,
-) {
+fn probe<F: FftField>(circuit: &Captured<F>, input: &Input, replay: impl Fn(&[F]) -> Option<bool>) {
     if circuit.cheatable.is_empty() {
         return;
     }

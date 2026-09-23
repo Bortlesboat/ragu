@@ -9,6 +9,8 @@
 //! - [`step::Step`] — the trait that defines computation nodes (transitions).
 //! - [`header::Header`] — the trait that defines succinct state representations.
 //! - [`Proof`] / [`Pcd`] — the proof and proof-carrying-data structures.
+//! - [`pasta`] — Ragu's fixed generators, derived and embedded at build time
+//!   with the `baked` feature.
 
 #![no_std]
 #![allow(clippy::type_complexity, clippy::too_many_arguments)]
@@ -35,6 +37,7 @@ mod fuse;
 pub mod fuzzing;
 pub mod header;
 mod internal;
+pub mod pasta;
 mod proof;
 pub mod step;
 mod verify;
@@ -44,13 +47,13 @@ use core::{any::TypeId, cell::OnceCell, marker::PhantomData};
 
 use header::Header;
 pub use proof::{Pcd, Proof};
-use ragu_arithmetic::{Cycle, rand::CryptoRng};
 use ragu_backend::ReferenceBackend;
 use ragu_circuits::{
     polynomials::Rank,
     registry::{Registry, RegistryBuilder},
 };
-use ragu_core::{Error, Result};
+use ragu_core::{Cycle, Error, Result};
+use rand::CryptoRng;
 use step::{Step, internal::adapter::Adapter};
 
 /// Domain separation tag for Ragu PCD protocol.

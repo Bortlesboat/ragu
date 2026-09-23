@@ -18,10 +18,8 @@
 //! [`fused_fixtures`] check that before handing any of them out.
 
 use arbitrary::Arbitrary;
-use ragu_arithmetic::{Cycle, ff::Field};
 use ragu_circuits::polynomials::ProductionRank;
-use ragu_core::Result;
-use ragu_pasta::Pasta;
+use ragu_core::{Cycle, Result, pasta::Pasta};
 use ragu_pcd::{
     Application, ApplicationBuilder, Proof,
     fuzzing::corrupt::{
@@ -30,6 +28,7 @@ use ragu_pcd::{
 };
 use ragu_testing::pcd::nontrivial::{Hash2, InternalNode, LeafNode, Merge2, WitnessLeaf};
 use rand::{SeedableRng, rngs::StdRng};
+use udon::field::Field;
 
 /// The cycle every PCD target works over.
 pub type C = Pasta;
@@ -57,7 +56,7 @@ unsafe impl Sync for SyncApp {}
 
 /// Poseidon parameters for the baked Pasta cycle.
 fn poseidon() -> &'static <Pasta as Cycle>::CircuitPoseidon {
-    Pasta::circuit_poseidon(Pasta::baked())
+    Pasta::circuit_poseidon(ragu_pcd::pasta::baked())
 }
 
 /// The seeding step.
@@ -104,7 +103,7 @@ pub fn nontrivial_app(steps: usize) -> SyncApp {
     }
     SyncApp(
         builder
-            .finalize(Pasta::baked())
+            .finalize(ragu_pcd::pasta::baked())
             .expect("the nontrivial application must build"),
     )
 }

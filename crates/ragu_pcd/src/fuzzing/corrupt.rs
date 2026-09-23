@@ -57,11 +57,12 @@
 
 use alloc::vec;
 
-use ragu_arithmetic::{Cycle, ff::Field};
 use ragu_circuits::{
     polynomials::{Rank, sparse},
     registry::CircuitIndex,
 };
+use ragu_core::Cycle;
+use udon::field::Field;
 
 use crate::{Application, Proof};
 

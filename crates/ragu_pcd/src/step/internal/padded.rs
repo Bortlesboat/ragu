@@ -1,6 +1,5 @@
 use core::marker::PhantomData;
 
-use ragu_arithmetic::ff::{Field, PrimeField};
 use ragu_core::{
     Result,
     drivers::Driver,
@@ -10,6 +9,7 @@ use ragu_primitives::{
     Element, GadgetExt, WithSuffix,
     io::{Buffer, Write},
 };
+use udon::field::{FftField, Field};
 
 use crate::Header;
 
@@ -36,7 +36,7 @@ pub(crate) fn for_header<
     'dr,
     H: Header<D::F>,
     const HEADER_SIZE: usize,
-    D: Driver<'dr, F: PrimeField>,
+    D: Driver<'dr, F: FftField>,
 >(
     dr: &mut D,
     gadget: Bound<'dr, D, H::Output>,
@@ -125,8 +125,8 @@ mod tests {
         drivers::{Driver, emulator::Emulator},
         gadgets::{Gadget, Kind},
         maybe::{Always, Maybe, MaybeKind},
+        pasta::Fp as F,
     };
-    use ragu_pasta::Fp as F;
     use ragu_primitives::{
         Element, GadgetExt, WithSuffix,
         io::Write,

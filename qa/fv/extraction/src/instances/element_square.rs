@@ -1,4 +1,4 @@
-use ragu_pasta::Fp;
+use ragu_core::pasta::Fp;
 use ragu_primitives::Element;
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireCollector, WireDeserializer};
@@ -16,7 +16,7 @@ impl CircuitInstance for ElementSquareInstance {
 
         // Reuse a constant element as a structural template, then substitute the
         // raw input wire into its single-field gadget.
-        let element_template = Element::constant(dr, Fp::zero());
+        let element_template = Element::constant(dr, Fp::ZERO);
         let x = WireDeserializer::new(input_wires).into_gadget(&element_template)?;
 
         let z = x.square(dr)?;

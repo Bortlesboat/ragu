@@ -10,15 +10,14 @@
 //! relation `<<r, r·z + s(X,y) + t(z)>> == k(y)` (mirroring `test_simple_circuit`)
 //! to see whether the inconsistent trace is accepted or rejected.
 
-use ragu_arithmetic::ff::Field;
 use ragu_core::{
     Result,
     drivers::{Driver, DriverValue},
     gadgets::{Bound, Kind},
     maybe::Maybe,
+    pasta::Fp,
     routines::{Prediction, Routine},
 };
-use ragu_pasta::Fp;
 use ragu_primitives::{Element, allocator::Standard};
 
 use crate::{

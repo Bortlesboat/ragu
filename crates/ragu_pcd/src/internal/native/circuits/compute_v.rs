@@ -46,7 +46,6 @@
 use alloc::{vec, vec::Vec};
 use core::marker::PhantomData;
 
-use ragu_arithmetic::{Cycle, ff::Field};
 use ragu_circuits::{
     WithAux,
     horner::Horner,
@@ -54,12 +53,13 @@ use ragu_circuits::{
     staging::{MultiStage, MultiStageCircuit, StageBuilder},
 };
 use ragu_core::{
-    Result,
+    Cycle, Result,
     drivers::{Driver, DriverValue},
     gadgets::Bound,
     maybe::Maybe,
 };
 use ragu_primitives::{Element, Endoscalar, EndoscalarChallenge, GadgetExt, allocator::Standard};
+use udon::field::Field;
 
 use super::super::{
     InternalCircuitIndex, InternalCircuitValues, RxComponent, RxIndex, STATIC_F_QUERIES,
@@ -295,7 +295,7 @@ impl<'dr, D: Driver<'dr>> Denominators<'dr, D> {
         preamble: &native_preamble::Output<'dr, D, C, HEADER_SIZE>,
     ) -> Result<Self>
     where
-        D::F: ragu_arithmetic::ff::PrimeField,
+        D::F: udon::field::FftField,
     {
         let xz = x.mul(dr, z)?;
 
@@ -682,7 +682,7 @@ struct Inverter<'dr, D: Driver<'dr>> {
     differences: Vec<Element<'dr, D>>,
 }
 
-impl<'dr, D: Driver<'dr, F: ragu_arithmetic::ff::PrimeField>> Inverter<'dr, D> {
+impl<'dr, D: Driver<'dr, F: udon::field::FftField>> Inverter<'dr, D> {
     /// Creates a batch inverter with the provided base [`Element`].
     ///
     /// The base represents a fixed evaluation point (e.g., $u$ or $y$
@@ -751,10 +751,7 @@ impl<'dr, D: Driver<'dr, F: ragu_arithmetic::ff::PrimeField>> Inverter<'dr, D> {
                 .collect::<Vec<_>>();
 
             let mut scratch = vec![D::F::ZERO; differences.len()];
-            ragu_arithmetic::ff::BatchInverter::invert_with_external_scratch(
-                &mut differences,
-                &mut scratch,
-            );
+            udon::field::batch_invert_with_scratch(&mut differences, &mut scratch);
 
             differences.into_iter()
         });

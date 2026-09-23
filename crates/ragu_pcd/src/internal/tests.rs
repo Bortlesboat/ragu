@@ -6,23 +6,24 @@ use ragu_circuits::{
     Circuit,
     staging::{Stage, StageExt},
 };
-use ragu_pasta::{Fp, Pasta, fp, fq};
+use ragu_core::pasta::{Fp, Pasta};
+use udon::{fp_hex, fq_hex};
 
 use super::*;
 use crate::*;
 pub type R = ragu_circuits::polynomials::ProductionRank;
 
-use ragu_arithmetic::ff::PrimeField;
 use ragu_circuits::polynomials::Rank;
 use ragu_core::{
     drivers::emulator::{Emulator, Wireless},
     gadgets::{Bound, Gadget},
     maybe::Empty,
 };
+use udon::field::FftField;
 
 pub fn assert_stage_values<F, R, S>(stage: &S)
 where
-    F: PrimeField,
+    F: FftField,
     R: Rank,
     S: Stage<F, R>,
     for<'dr> Bound<'dr, Emulator<Wireless<Empty, F>>, S::OutputKind>:
@@ -63,7 +64,7 @@ fn synthesis_counts(circuit: impl Circuit<Fp>) -> (usize, usize) {
 }
 
 fn internal_circuit_counts(variant: InternalCircuitIndex) -> (usize, usize) {
-    let pasta = Pasta::baked();
+    let pasta = crate::pasta::baked();
     let (_, log2_circuits) = native::total_circuit_counts(NUM_APP_STEPS);
 
     match variant {
@@ -224,7 +225,7 @@ fn print_internal_stage_parameters() {
 /// digests.
 #[test]
 fn test_native_registry_digest() {
-    let pasta = Pasta::baked();
+    let pasta = crate::pasta::baked();
 
     let app = ApplicationBuilder::<Pasta, R, HEADER_SIZE>::new()
         .register_dummy_circuits(NUM_APP_STEPS)
@@ -232,7 +233,7 @@ fn test_native_registry_digest() {
         .finalize(pasta)
         .unwrap();
 
-    let expected = fp!(0x0ed4508b44f141c210b5d5d3bc00c9ec5a9458f89de2210129e03084467adf28);
+    let expected = fp_hex!("0x0ed4508b44f141c210b5d5d3bc00c9ec5a9458f89de2210129e03084467adf28");
 
     assert_eq!(
         app.native_registry.digest(),
@@ -248,7 +249,7 @@ fn test_native_registry_digest() {
 /// digests.
 #[test]
 fn test_nested_registry_digest() {
-    let pasta = Pasta::baked();
+    let pasta = crate::pasta::baked();
 
     let app = ApplicationBuilder::<Pasta, R, HEADER_SIZE>::new()
         .register_dummy_circuits(NUM_APP_STEPS)
@@ -256,7 +257,7 @@ fn test_nested_registry_digest() {
         .finalize(pasta)
         .unwrap();
 
-    let expected = fq!(0x2f4bf855b80a694facbe9a2c26ee8d1dae9e15bb7b7eba54ca53f5c166e1d150);
+    let expected = fq_hex!("0x2f4bf855b80a694facbe9a2c26ee8d1dae9e15bb7b7eba54ca53f5c166e1d150");
 
     assert_eq!(
         app.nested_registry.digest(),
@@ -272,9 +273,7 @@ fn print_registry_digests() {
     use alloc::{format, string::String, vec::Vec};
     use std::println;
 
-    use ragu_arithmetic::ff::PrimeField;
-
-    let pasta = Pasta::baked();
+    let pasta = crate::pasta::baked();
 
     let app = ApplicationBuilder::<Pasta, R, HEADER_SIZE>::new()
         .register_dummy_circuits(NUM_APP_STEPS)
@@ -287,14 +286,14 @@ fn print_registry_digests() {
 
     // Convert to big-endian hex for repr256! format
     let native_bytes: Vec<u8> = native_digest
-        .to_repr()
+        .to_bytes()
         .as_ref()
         .iter()
         .rev()
         .cloned()
         .collect();
     let nested_bytes: Vec<u8> = nested_digest
-        .to_repr()
+        .to_bytes()
         .as_ref()
         .iter()
         .rev()
@@ -303,14 +302,14 @@ fn print_registry_digests() {
 
     println!("\n// Copy-paste the following into the registry digest tests:");
     println!(
-        "    let expected = fp!(0x{});",
+        "    let expected = fp_hex!(\"0x{}\");",
         native_bytes
             .iter()
             .map(|b| format!("{:02x}", b))
             .collect::<String>()
     );
     println!(
-        "    let expected = fq!(0x{});",
+        "    let expected = fq_hex!(\"0x{}\");",
         nested_bytes
             .iter()
             .map(|b| format!("{:02x}", b))

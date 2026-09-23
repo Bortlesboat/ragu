@@ -5,16 +5,16 @@ mod identity;
 mod known_routine_soundness;
 mod segment_order;
 
-use ragu_arithmetic::ff::Field;
 use ragu_core::{
     Error, Result,
     drivers::{Driver, DriverValue, LinearExpression},
     gadgets::{Bound, Kind},
     maybe::{Always, Maybe},
+    pasta::Fp,
     routines::{Prediction, Routine},
 };
-use ragu_pasta::Fp;
 use ragu_primitives::{Element, Simulator, allocator::Standard};
+use rand::Rng;
 
 use crate::{
     Circuit, CircuitExt, WiringObject, WithAux, floor_planner, into_wiring_object,
@@ -90,8 +90,8 @@ impl Circuit<Fp> for ManyLinearCircuit {
 }
 
 fn consistency_checks<R: Rank>(obj: &dyn WiringObject<Fp, R>) {
-    let x = Fp::random(&mut ragu_arithmetic::rand::rng());
-    let y = Fp::random(&mut ragu_arithmetic::rand::rng());
+    let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+    let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
     let plan = floor_planner::floor_plan(obj.segment_records());
 
     let sxy_eval = obj.sxy(x, y, &plan);
@@ -165,18 +165,20 @@ fn test_simple_circuit() {
 
     let trace = MySimpleCircuit
         .trace((
-            Fp::from_raw([
+            <Fp as udon::field::Field>::from_limbs([
                 1833481853729904510,
                 5119040798866070668,
                 13106006979685074791,
                 104139735293675522,
-            ]),
-            Fp::from_raw([
+            ])
+            .expect("canonical limbs"),
+            <Fp as udon::field::Field>::from_limbs([
                 1114250137190507128,
                 15522336584428696251,
                 4689053926428793931,
                 2277752110332726989,
-            ]),
+            ])
+            .expect("canonical limbs"),
         ))
         .unwrap()
         .into_output();
@@ -189,8 +191,8 @@ fn test_simple_circuit() {
 
     consistency_checks::<MyRank>(&*obj);
 
-    let y = Fp::random(&mut ragu_arithmetic::rand::rng());
-    let z = Fp::random(&mut ragu_arithmetic::rand::rng());
+    let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+    let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
 
     let a = assignment.clone();
     let mut b = assignment.clone();
@@ -201,18 +203,20 @@ fn test_simple_circuit() {
     let expected = MySimpleCircuit
         .ky(
             (
-                Fp::from_raw([
+                <Fp as udon::field::Field>::from_limbs([
                     2947731990920411638,
                     2194633309585215303,
                     17795060906113868723,
                     2381891845626402511,
-                ]),
-                Fp::from_raw([
+                ])
+                .expect("canonical limbs"),
+                <Fp as udon::field::Field>::from_limbs([
                     11756763772759733511,
                     10513277942061441772,
                     8416953053256280859,
                     2438073643388336437,
-                ]),
+                ])
+                .expect("canonical limbs"),
             ),
             y,
         )

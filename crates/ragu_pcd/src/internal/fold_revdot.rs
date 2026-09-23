@@ -6,7 +6,6 @@
 
 use core::{borrow::Borrow, iter, marker::PhantomData};
 
-use ragu_arithmetic::{DeferredField, ff::Field};
 use ragu_circuits::{
     horner::Horner,
     polynomials::{Rank, sparse},
@@ -17,6 +16,7 @@ use ragu_primitives::{
     io::Buffer,
     vec::{CollectFixed, ConstLen, FixedVec, Len},
 };
+use udon::field::{DeferredField, Field};
 
 /// The two operations a Horner-style fold needs: scale all components, then
 /// add another element in.
@@ -325,11 +325,10 @@ pub fn fold_two_layer<'dr, D: Driver<'dr>, P: Parameters>(
 mod tests {
     use alloc::{vec, vec::Vec};
 
-    use ragu_arithmetic::{ff::Field, rand::SeedableRng};
     use ragu_circuits::polynomials::{TestRank, sparse};
-    use ragu_core::{drivers::emulator::Emulator, maybe::Maybe};
-    use ragu_pasta::Fp;
+    use ragu_core::{drivers::emulator::Emulator, maybe::Maybe, pasta::Fp};
     use ragu_primitives::{Simulator, allocator::Standard, vec::CollectFixed};
+    use rand::{Rng, SeedableRng};
 
     use super::*;
     use crate::internal::native::RevdotParameters;
@@ -347,7 +346,7 @@ mod tests {
         type P = TestParams<3, 3>;
 
         let n = <P as Parameters>::NumGroups::len();
-        let mut rng = ragu_arithmetic::rand::rng();
+        let mut rng = rand::rng();
 
         // Create N random polynomial pairs
         let lhs: Vec<sparse::Polynomial<Fp, TestRank>> = (0..n)
@@ -364,8 +363,8 @@ mod tests {
         let error_terms = outer_error_terms::<Fp, TestRank, P>(&lhs, &rhs);
         let error: Vec<Fp> = error_terms.iter().copied().collect();
 
-        let mu = Fp::random(&mut rng);
-        let nu = Fp::random(&mut rng);
+        let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+        let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
         let mu_inv = mu.invert().unwrap();
         let munu = mu * nu;
 
@@ -414,7 +413,7 @@ mod tests {
         let n = <P as Parameters>::NumGroups::len();
 
         fn verify(count: usize, m: usize, n: usize) -> Result<()> {
-            let mut rng = ragu_arithmetic::rand::rng();
+            let mut rng = rand::rng();
 
             // Create `count` random polynomial pairs
             let lhs: Vec<sparse::Polynomial<Fp, TestRank>> = (0..count)
@@ -428,8 +427,8 @@ mod tests {
             let ky_values: Vec<Fp> = lhs.iter().zip(&rhs).map(|(l, r)| l.revdot(r)).collect();
 
             // Layer 1 challenges
-            let mu = Fp::random(&mut rng);
-            let nu = Fp::random(&mut rng);
+            let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
             let mu_inv = mu.invert().unwrap();
             let munu = mu * nu;
 
@@ -487,13 +486,25 @@ mod tests {
     fn test_fold_products_constraints() -> Result<()> {
         fn measure<P: Parameters>() -> Result<usize> {
             let sim = Simulator::simulate((), |dr, _| {
-                let mu = Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()));
-                let nu = Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()));
+                let mu = Element::constant(
+                    dr,
+                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                );
+                let nu = Element::constant(
+                    dr,
+                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                );
                 let error_terms = FixedVec::from_fn(|_| {
-                    Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()))
+                    Element::constant(
+                        dr,
+                        udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                    )
                 });
                 let ky_values = FixedVec::from_fn(|_| {
-                    Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()))
+                    Element::constant(
+                        dr,
+                        udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                    )
                 });
 
                 let fold_products = ClaimFolder::new(dr, &mu, &nu)?;
@@ -517,7 +528,7 @@ mod tests {
     fn test_multireduce() -> Result<()> {
         /// Verify two-layer folding correctness with actual polynomials.
         fn verify<P: Parameters>() -> Result<()> {
-            let mut rng = ragu_arithmetic::rand::rng();
+            let mut rng = rand::rng();
             let n = P::NumGroups::len();
             let m = P::GroupSize::len();
             let count = n * m;
@@ -534,8 +545,8 @@ mod tests {
             let ky_values: Vec<Fp> = lhs.iter().zip(&rhs).map(|(l, r)| l.revdot(r)).collect();
 
             // Layer 1 challenges
-            let mu = Fp::random(&mut rng);
-            let nu = Fp::random(&mut rng);
+            let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
             let mu_inv = mu.invert().unwrap();
             let munu = mu * nu;
 
@@ -582,8 +593,8 @@ mod tests {
             }
 
             // Layer 2 challenges
-            let mu_prime = Fp::random(&mut rng);
-            let nu_prime = Fp::random(&mut rng);
+            let mu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let nu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
             let mu_prime_inv = mu_prime.invert().unwrap();
             let mu_prime_nu_prime = mu_prime * nu_prime;
 
@@ -642,7 +653,7 @@ mod tests {
         /// Verify fold_two_layer on evaluations matches evaluating folded polynomials
         /// for both lhs and rhs polynomial sets with their respective scale factors.
         fn verify<P: Parameters>(count: usize) -> Result<()> {
-            let mut rng = ragu_arithmetic::rand::rng();
+            let mut rng = rand::rng();
 
             // Create `count` random polynomial pairs (up to m*n)
             let lhs: Vec<sparse::Polynomial<Fp, TestRank>> = (0..count)
@@ -653,13 +664,13 @@ mod tests {
                 .collect();
 
             // Random evaluation point
-            let x = Fp::random(&mut rng);
+            let x = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
 
             // Challenge values (matching compute_v.rs usage pattern)
-            let mu = Fp::random(&mut rng);
-            let nu = Fp::random(&mut rng);
-            let mu_prime = Fp::random(&mut rng);
-            let nu_prime = Fp::random(&mut rng);
+            let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let mu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let nu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
 
             // Derived scale factors for lhs: mu_inv, mu_prime_inv
             let mu_inv = mu.invert().unwrap();
@@ -774,14 +785,33 @@ mod tests {
     #[test]
     fn test_cost_formulas() -> Result<()> {
         fn verify<const M: usize, const N: usize>() -> Result<()> {
-            let rng =
-                ragu_arithmetic::rand::rngs::StdRng::from_rng(&mut ragu_arithmetic::rand::rng());
+            let rng = rand::rngs::StdRng::from_rng(&mut rand::rng());
             let sim = Simulator::simulate(rng, |dr, mut rng| {
                 let allocator = &mut Standard::new();
-                let mu = Element::alloc(dr, allocator, rng.as_mut().map(Fp::random))?;
-                let nu = Element::alloc(dr, allocator, rng.as_mut().map(Fp::random))?;
-                let mu_prime = Element::alloc(dr, allocator, rng.as_mut().map(Fp::random))?;
-                let nu_prime = Element::alloc(dr, allocator, rng.as_mut().map(Fp::random))?;
+                let mu = Element::alloc(
+                    dr,
+                    allocator,
+                    rng.as_mut()
+                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                )?;
+                let nu = Element::alloc(
+                    dr,
+                    allocator,
+                    rng.as_mut()
+                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                )?;
+                let mu_prime = Element::alloc(
+                    dr,
+                    allocator,
+                    rng.as_mut()
+                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                )?;
+                let nu_prime = Element::alloc(
+                    dr,
+                    allocator,
+                    rng.as_mut()
+                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                )?;
 
                 // Layer 1: N instances of M-sized reductions (uses mu, nu).
                 let fold_products_layer1 = ClaimFolder::new(dr, &mu, &nu)?;
@@ -790,13 +820,25 @@ mod tests {
                     ConstLen<N>,
                 > = FixedVec::try_from_fn(|_| {
                     FixedVec::try_from_fn(|_| {
-                        Element::alloc(dr, allocator, rng.as_mut().map(Fp::random))
+                        Element::alloc(
+                            dr,
+                            allocator,
+                            rng.as_mut().map(|rng| {
+                                udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))
+                            }),
+                        )
                     })
                 })?;
                 let all_ky_values_m: FixedVec<FixedVec<_, ConstLen<M>>, ConstLen<N>> =
                     FixedVec::try_from_fn(|_| {
                         FixedVec::try_from_fn(|_| {
-                            Element::alloc(dr, allocator, rng.as_mut().map(Fp::random))
+                            Element::alloc(
+                                dr,
+                                allocator,
+                                rng.as_mut().map(|rng| {
+                                    udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))
+                                }),
+                            )
                         })
                     })?;
 
@@ -812,7 +854,13 @@ mod tests {
                 let fold_products_layer2 = ClaimFolder::new(dr, &mu_prime, &nu_prime)?;
                 let error_terms_n: FixedVec<_, NumErrorTerms<ConstLen<N>>> =
                     FixedVec::try_from_fn(|_| {
-                        Element::alloc(dr, allocator, rng.as_mut().map(Fp::random))
+                        Element::alloc(
+                            dr,
+                            allocator,
+                            rng.as_mut().map(|rng| {
+                                udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))
+                            }),
+                        )
                     })?;
 
                 fold_products_layer2.fold_outer::<TestParams<N, M>>(
@@ -883,7 +931,7 @@ mod tests {
 
     #[test]
     fn test_error_term_ordering() {
-        let mut rng = ragu_arithmetic::rand::rng();
+        let mut rng = rand::rng();
 
         // Create 3 distinct polynomial pairs
         let a: Vec<sparse::Polynomial<Fp, TestRank>> = (0..3)
@@ -913,14 +961,26 @@ mod tests {
         // Verify layer 1 constraint count formula: 2M^2 + 1 per group
         fn measure_m<const M: usize>() -> Result<usize> {
             let sim = Simulator::simulate((), |dr, _| {
-                let mu = Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()));
-                let nu = Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()));
+                let mu = Element::constant(
+                    dr,
+                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                );
+                let nu = Element::constant(
+                    dr,
+                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                );
                 let error_terms: FixedVec<_, NumErrorTerms<ConstLen<M>>> =
                     FixedVec::from_fn(|_| {
-                        Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()))
+                        Element::constant(
+                            dr,
+                            udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                        )
                     });
                 let ky_values: FixedVec<_, ConstLen<M>> = FixedVec::from_fn(|_| {
-                    Element::constant(dr, Fp::random(&mut ragu_arithmetic::rand::rng()))
+                    Element::constant(
+                        dr,
+                        udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+                    )
                 });
 
                 let fold_products = ClaimFolder::new(dr, &mu, &nu)?;
@@ -943,7 +1003,7 @@ mod tests {
     fn test_native_parameters_correctness() -> Result<()> {
         // Test with actual RevdotParameters (M=6, N=18)
 
-        let mut rng = ragu_arithmetic::rand::rng();
+        let mut rng = rand::rng();
         let m = <RevdotParameters as Parameters>::GroupSize::len();
         let _n = <RevdotParameters as Parameters>::NumGroups::len();
 
@@ -957,8 +1017,8 @@ mod tests {
             .map(|_| sparse::Polynomial::random(&mut rng))
             .collect();
 
-        let mu = Fp::random(&mut rng);
-        let nu = Fp::random(&mut rng);
+        let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+        let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
         let mu_inv = mu.invert().unwrap();
         let munu = mu * nu;
 

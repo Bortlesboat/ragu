@@ -14,9 +14,8 @@
 use alloc::vec::Vec;
 use core::ops::AddAssign;
 
-use ragu_arithmetic::{Cycle, ff::Field};
 use ragu_circuits::polynomials::{Rank, sparse};
-use ragu_core::Result;
+use ragu_core::{Cycle, Result};
 use ragu_primitives::{EndoscalarChallenge, lift_endoscalar};
 
 use super::{NativeF, NativeFuseEmulator, NativeSPrime, RegistryWy};
@@ -50,7 +49,7 @@ impl<C: Cycle, R: Rank> Accumulator<'_, C, R> {
 impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
     Application<'_, C, R, HEADER_SIZE, B>
 {
-    pub(super) fn compute_p<'dr, RNG: ragu_arithmetic::rand::CryptoRng>(
+    pub(super) fn compute_p<'dr, RNG: rand::CryptoRng>(
         &self,
         rng: &mut RNG,
         pre_beta: &EndoscalarChallenge<'dr, NativeFuseEmulator<C>>,
@@ -124,8 +123,8 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         points.push(f.commitment);
         points.extend_from_slice(&commitments);
 
-        let endoscalar_alpha = C::ScalarField::random(&mut *rng);
-        let points_alpha = C::ScalarField::random(&mut *rng);
+        let endoscalar_alpha = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
+        let points_alpha = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
         let p_commitment = self.compute_endoscaling(
             rng,
             beta_endo,

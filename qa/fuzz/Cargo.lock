@@ -3,17 +3,6 @@
 version = 4
 
 [[package]]
-name = "addchain"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5665045de74fda906c0abfaec40cf2551f88c34dccea869f3fe950dde7209764"
-dependencies = [
- "num-bigint",
- "num-integer",
- "num-traits",
-]
-
-[[package]]
 name = "arbitrary"
 version = "1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -60,18 +49,6 @@ name = "bitflags"
 version = "2.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b588b76d00fde79687d7646a9b5bdf3cc0f655e0bbd080335a95d7e96f3587da"
-
-[[package]]
-name = "bitvec"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddcec3d12c579d40898fe0a9a358a803c23e9c52ca3c425707f81c9436211837"
-dependencies = [
- "funty",
- "radium",
- "tap",
- "wyz",
-]
 
 [[package]]
 name = "blake2b_simd"
@@ -167,25 +144,8 @@ version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1f686ab92a9fb0eaf188f6c6c87b89490baa6fdb0db4544ba4dc47f7942489f"
 dependencies = [
- "bitvec",
- "ff_derive",
  "rand_core 0.10.1",
  "subtle",
-]
-
-[[package]]
-name = "ff_derive"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "241afe8c15ffa21933eaefe8a563af36fd9fc98a3e8a044e8f7db52eb1fae3d8"
-dependencies = [
- "addchain",
- "num-bigint",
- "num-integer",
- "num-traits",
- "proc-macro2",
- "quote",
- "syn 2.0.119",
 ]
 
 [[package]]
@@ -199,12 +159,6 @@ name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
-
-[[package]]
-name = "funty"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
 name = "getrandom"
@@ -272,6 +226,9 @@ name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
+dependencies = [
+ "spin",
+]
 
 [[package]]
 name = "libc"
@@ -409,37 +366,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
-name = "radium"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc33ff2d4973d518d823d61aa239014831e521c75da58e3df4840d3f47749d09"
-
-[[package]]
 name = "ragu_acceleration"
 version = "0.0.0"
 dependencies = [
- "ragu_arithmetic",
  "ragu_backend",
-]
-
-[[package]]
-name = "ragu_arithmetic"
-version = "0.0.0"
-dependencies = [
- "ff",
- "group",
- "ragu_macros",
- "rand 0.10.2",
- "tachyon-maybe-rayon",
- "zakura-pasta-curves",
+ "zakura-udon",
 ]
 
 [[package]]
 name = "ragu_backend"
 version = "0.0.0"
 dependencies = [
- "ragu_arithmetic",
  "ragu_circuits",
+ "ragu_core",
+ "zakura-udon",
 ]
 
 [[package]]
@@ -447,19 +387,20 @@ name = "ragu_circuits"
 version = "0.0.0"
 dependencies = [
  "blake2b_simd",
- "ragu_arithmetic",
  "ragu_core",
  "ragu_primitives",
+ "rand 0.10.2",
  "tachyon-maybe-rayon",
+ "zakura-udon",
 ]
 
 [[package]]
 name = "ragu_core"
 version = "0.0.0"
 dependencies = [
- "ragu_arithmetic",
  "ragu_macros",
  "thiserror",
+ "zakura-udon",
 ]
 
 [[package]]
@@ -475,34 +416,30 @@ dependencies = [
 ]
 
 [[package]]
-name = "ragu_pasta"
-version = "0.0.0"
-dependencies = [
- "lazy_static",
- "ragu_arithmetic",
-]
-
-[[package]]
 name = "ragu_pcd"
 version = "0.0.0"
 dependencies = [
+ "lazy_static",
  "ragu_acceleration",
- "ragu_arithmetic",
  "ragu_backend",
  "ragu_circuits",
  "ragu_core",
  "ragu_primitives",
+ "rand 0.10.2",
  "tachyon-maybe-rayon",
+ "zakura-bento",
+ "zakura-pasta-curves",
+ "zakura-udon",
 ]
 
 [[package]]
 name = "ragu_primitives"
 version = "0.0.0"
 dependencies = [
- "ragu_arithmetic",
  "ragu_core",
  "ragu_macros",
  "thiserror",
+ "zakura-udon",
 ]
 
 [[package]]
@@ -510,11 +447,11 @@ name = "ragu_testing"
 version = "0.0.0"
 dependencies = [
  "proptest",
- "ragu_arithmetic",
  "ragu_circuits",
  "ragu_core",
  "ragu_pcd",
  "ragu_primitives",
+ "zakura-udon",
 ]
 
 [[package]]
@@ -522,21 +459,17 @@ name = "ragu_testing-fuzz"
 version = "0.0.0"
 dependencies = [
  "arbitrary",
- "ff",
- "group",
  "libfuzzer-sys",
  "proc-macro2",
  "proptest",
- "ragu_arithmetic",
  "ragu_circuits",
  "ragu_core",
- "ragu_pasta",
  "ragu_pcd",
  "ragu_primitives",
  "ragu_testing",
  "rand 0.10.2",
  "syn 2.0.119",
- "zakura-pasta-curves",
+ "zakura-udon",
 ]
 
 [[package]]
@@ -652,6 +585,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
+name = "spin"
+version = "0.9.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -693,12 +632,6 @@ checksum = "85270e8ca1975f46b1e703622f0720c0b92b36394442843381c31c5c34aca3f9"
 dependencies = [
  "cfg-if",
 ]
-
-[[package]]
-name = "tap"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 
 [[package]]
 name = "tempfile"
@@ -824,12 +757,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 
 [[package]]
-name = "wyz"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05f360fc0b24296329c78fda852a1e9ae82de9cf7b27dae4b7f62f118f77b9ed"
+name = "zakura-bento"
+version = "0.1.0"
+source = "git+https://github.com/tachyon-zcash/udon?rev=741adeea4888d31652087436d9fa99c7f78fe6d9#741adeea4888d31652087436d9fa99c7f78fe6d9"
 dependencies = [
- "tap",
+ "zakura-bento-core",
+ "zakura-bento-macros",
+]
+
+[[package]]
+name = "zakura-bento-core"
+version = "0.1.0"
+source = "git+https://github.com/tachyon-zcash/udon?rev=741adeea4888d31652087436d9fa99c7f78fe6d9#741adeea4888d31652087436d9fa99c7f78fe6d9"
+
+[[package]]
+name = "zakura-bento-macros"
+version = "0.1.0"
+source = "git+https://github.com/tachyon-zcash/udon?rev=741adeea4888d31652087436d9fa99c7f78fe6d9#741adeea4888d31652087436d9fa99c7f78fe6d9"
+dependencies = [
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+ "zakura-bento-core",
 ]
 
 [[package]]
@@ -841,10 +791,17 @@ dependencies = [
  "blake2b_simd",
  "ff",
  "group",
- "once_cell",
  "rand 0.10.2",
  "static_assertions",
  "subtle",
+]
+
+[[package]]
+name = "zakura-udon"
+version = "0.1.0"
+source = "git+https://github.com/tachyon-zcash/udon?rev=741adeea4888d31652087436d9fa99c7f78fe6d9#741adeea4888d31652087436d9fa99c7f78fe6d9"
+dependencies = [
+ "zakura-bento",
 ]
 
 [[package]]

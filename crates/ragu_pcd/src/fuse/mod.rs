@@ -24,14 +24,14 @@ pub(crate) mod claims;
 pub(crate) mod patcher;
 
 use claims::FuseProofSource;
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_circuits::polynomials::{Rank, sparse};
 use ragu_core::{
-    Result,
+    Cycle, Result,
     drivers::emulator::{Emulator, Wireless},
     maybe::{Always, Maybe},
 };
 use ragu_primitives::{EndoscalarChallenge, GadgetExt, Point, vec::CollectFixed};
+use rand::CryptoRng;
 
 use crate::{
     Application, Pcd, RAGU_TAG, internal::transcript::Transcript, proof::ProofBuilder, step::Step,
@@ -89,8 +89,10 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         left: Pcd<C, R, S::Left>,
         right: Pcd<C, R, S::Right>,
     ) -> Result<(Pcd<C, R, S::Output>, S::Aux<'source>)> {
-        let mut builder =
-            ProofBuilder::<C, R, B>::new(self.params, C::ScalarField::random(&mut *rng));
+        let mut builder = ProofBuilder::<C, R, B>::new(
+            self.params,
+            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
+        );
 
         let (left, right, application_data, application_aux) =
             self.compute_application_proof(rng, step, witness, left, right, &mut builder)?;

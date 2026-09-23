@@ -47,10 +47,11 @@
 
 use std::time::{Duration, Instant};
 
-use ragu_arithmetic::{Cycle, ff::PrimeFieldBits};
 use ragu_circuits::{Circuit, polynomials::ProductionRank};
-use ragu_core::Result;
-use ragu_pasta::{Fp, Pasta};
+use ragu_core::{
+    Cycle, Result,
+    pasta::{Fp, Pasta},
+};
 use ragu_pcd::{
     ApplicationBuilder,
     fuzzing::patcher::{
@@ -66,6 +67,7 @@ use ragu_testing::{
     pcd::nontrivial::{Hash2, Merge2, WitnessLeaf},
 };
 use rand::{SeedableRng, rngs::StdRng};
+use udon::field::FftField;
 
 /// One circuit's census at one capture point.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -91,7 +93,7 @@ struct Census {
 }
 
 /// Captures one circuit and runs every check, returning its census.
-fn check<'w, F: PrimeFieldBits, Cir: Circuit<F>>(
+fn check<'w, F: FftField, Cir: Circuit<F>>(
     point: &str,
     spec: &CircuitSpec,
     circuit: &Cir,
@@ -356,7 +358,7 @@ fn expected(name: &str, point: &str) -> Census {
 /// every internal circuit as its honest witness is built.
 #[test]
 fn patcher_captures_internal_circuits() -> Result<()> {
-    let pasta = Pasta::baked();
+    let pasta = ragu_pcd::pasta::baked();
     let leaf_step = || WitnessLeaf {
         poseidon_params: Pasta::circuit_poseidon(pasta),
     };

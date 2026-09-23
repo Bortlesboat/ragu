@@ -3,9 +3,8 @@
 //! Used in rerandomization to create a properly-structured trivial proof that
 //! can be folded with a valid proof without causing C value mismatches.
 
-use ragu_arithmetic::Cycle;
 use ragu_core::{
-    Result,
+    Cycle, Result,
     drivers::{Driver, DriverValue},
 };
 use ragu_primitives::allocator::Standard;

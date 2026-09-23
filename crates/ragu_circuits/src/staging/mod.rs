@@ -64,13 +64,15 @@
 //! stage's [staging mask](StageExt::mask).
 //!
 //! ```rust,ignore
+//! use rand::Rng;
+//!
 //! let a = MyStage::rx(alpha, my_stage_witness)?;
 //!
 //! // Register the mask into a registry to obtain s(X, y).
 //! let mask_handle = builder.register_bonding(MyStage::mask()?);
 //! let registry = builder.finalize()?;
 //!
-//! let y = Fp::random(&mut ragu_arithmetic::rand::rng());
+//! let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
 //! assert_eq!(a.revdot(&registry.y(mask_handle, y)), Fp::ZERO);
 //! ```
 //!
@@ -78,11 +80,13 @@
 //! check, they can be combined using a random challenge $z$:
 //!
 //! ```rust,ignore
+//! use rand::Rng;
+//!
 //! let a = MyStage::rx(alpha_a, my_stage_witness)?;
 //! let b = MyStage::rx(alpha_b, my_stage_witness)?;
 //!
 //! // Sample random challenge z after committing to `a` and `b`
-//! let z = Fp::random(&mut ragu_arithmetic::rand::rng());
+//! let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
 //!
 //! let mut combined = a.clone();
 //! combined.scale(z);
@@ -91,7 +95,7 @@
 //! let mask_handle = builder.register_bonding(MyStage::mask()?);
 //! let registry = builder.finalize()?;
 //!
-//! let y = Fp::random(&mut ragu_arithmetic::rand::rng());
+//! let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
 //! assert_eq!(combined.revdot(&registry.y(mask_handle, y)), Fp::ZERO);
 //! ```
 //!
@@ -148,9 +152,8 @@ mod rx_driver;
 use alloc::boxed::Box;
 
 pub use builder::{StageBuilder, StageGuard};
-use ragu_arithmetic::{Coeff, ff::Field};
 use ragu_core::{
-    Result,
+    Coeff, Result,
     drivers::{Driver, DriverValue, emulator::Emulator},
     gadgets::{Bound, GadgetKind},
     maybe::{Always, MaybeKind},
@@ -160,6 +163,7 @@ use ragu_primitives::{
     io::Write,
 };
 use rx_driver::RxDriver;
+use udon::field::Field;
 
 use crate::{
     BondingObject, Circuit, WithAux,

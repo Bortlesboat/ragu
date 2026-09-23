@@ -18,15 +18,15 @@
 
 use core::marker::PhantomData;
 
-use ragu_arithmetic::{Cycle, ff::PrimeField};
 use ragu_circuits::{polynomials::Rank, staging};
 use ragu_core::{
-    Result,
+    Cycle, Result,
     drivers::{Driver, DriverValue},
     gadgets::{Bound, Gadget, Kind},
     maybe::Maybe,
 };
 use ragu_primitives::{Element, allocator::Allocator, io::Write};
+use udon::field::FftField;
 
 use crate::{
     Proof,
@@ -58,7 +58,7 @@ pub struct ChildEvaluationsWitness<F> {
     pub p_poly: F,
 }
 
-impl<F: PrimeField> ChildEvaluationsWitness<F> {
+impl<F: FftField> ChildEvaluationsWitness<F> {
     /// Create child evaluations witness from a proof evaluated at point u.
     pub fn from_proof<C: Cycle<CircuitField = F>, R: Rank, B: ragu_backend::Backend>(
         proof: &Proof<C, R>,
@@ -255,7 +255,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize> staging::Stage<C::CircuitField
 
 #[cfg(test)]
 mod tests {
-    use ragu_pasta::Pasta;
+    use ragu_core::pasta::Pasta;
 
     use super::*;
     use crate::internal::tests::{HEADER_SIZE, R, assert_stage_values};

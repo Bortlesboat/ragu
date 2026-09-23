@@ -17,10 +17,11 @@
 //! nothing. [`the_trivial_proof_does_not_verify`] pins that, because a fuzz
 //! target that starts from it passes vacuously.
 
-use ragu_arithmetic::Cycle;
 use ragu_circuits::polynomials::ProductionRank;
-use ragu_core::Result;
-use ragu_pasta::{Fp, Fq, Pasta};
+use ragu_core::{
+    Cycle, Result,
+    pasta::{Fp, Fq, Pasta},
+};
 use ragu_pcd::{
     Application, ApplicationBuilder, Proof,
     fuzzing::corrupt::{
@@ -64,12 +65,12 @@ impl Fixture {
 /// circuit.
 fn empty_app() -> Application<'static, C, R, HEADER_SIZE> {
     ApplicationBuilder::<C, R, HEADER_SIZE>::new()
-        .finalize(Pasta::baked())
+        .finalize(ragu_pcd::pasta::baked())
         .expect("the empty application must build")
 }
 
 fn app() -> Application<'static, C, R, HEADER_SIZE> {
-    let pasta = Pasta::baked();
+    let pasta = ragu_pcd::pasta::baked();
     let poseidon = Pasta::circuit_poseidon(pasta);
     ApplicationBuilder::<C, R, HEADER_SIZE>::new()
         .register(WitnessLeaf {
@@ -92,7 +93,7 @@ fn app() -> Application<'static, C, R, HEADER_SIZE> {
 /// A leaf and a fuse of two fuses, in the application that registers the
 /// steps they use.
 fn fixtures(app: &Application<'_, C, R, HEADER_SIZE>) -> Vec<Fixture> {
-    let pasta = Pasta::baked();
+    let pasta = ragu_pcd::pasta::baked();
     let poseidon = Pasta::circuit_poseidon(pasta);
     let leaf = |rng: &mut StdRng, witness: u64| {
         app.seed(

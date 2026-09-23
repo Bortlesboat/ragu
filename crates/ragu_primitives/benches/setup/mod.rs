@@ -1,16 +1,13 @@
-use ff::{Field, PrimeField};
-use group::CurveAffine;
-use ragu_arithmetic::Cycle;
 use ragu_core::{
     drivers::{
         Driver,
         emulator::{Emulator, Wireless},
     },
     maybe::Always,
+    pasta::{EpAffine, Fp, Fq, PoseidonFp},
 };
-use ragu_pasta::{EpAffine, Fp, Fq, Pasta, PoseidonFp};
 use ragu_primitives::{Boolean, Element, Endoscalar, Point, poseidon::Sponge};
-use rand::{RngExt, SeedableRng, rngs::StdRng};
+use rand::{Rng, RngExt, SeedableRng, rngs::StdRng};
 
 pub type BenchEmu = Emulator<Wireless<Always<()>, Fp>>;
 
@@ -56,7 +53,7 @@ pub fn setup_emu<Fns: SetupEmu<T>, T>(fns: Fns) -> (BenchEmu, T) {
 
 // Allocator functions - each takes (emu, rng) and returns an allocated primitive
 pub fn alloc_elem(emu: &mut BenchEmu, rng: &mut StdRng) -> Element<'static, BenchEmu> {
-    let v = Fp::random(rng);
+    let v = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
     Element::alloc(emu, &mut (), BenchEmu::just(|| v)).unwrap()
 }
 
@@ -66,8 +63,8 @@ pub fn alloc_endoscalar_elem(emu: &mut BenchEmu, rng: &mut StdRng) -> Element<'s
 }
 
 pub fn alloc_point(emu: &mut BenchEmu, rng: &mut StdRng) -> Point<'static, BenchEmu, EpAffine> {
-    let s = Fq::random(rng);
-    Point::alloc(emu, BenchEmu::just(|| (EpAffine::generator() * s).into())).unwrap()
+    let s = udon::field::random::<Fq>(|bytes| rng.fill_bytes(bytes));
+    Point::alloc(emu, BenchEmu::just(|| (EpAffine::GENERATOR * s).into())).unwrap()
 }
 
 pub fn alloc_endo(emu: &mut BenchEmu, rng: &mut StdRng) -> Endoscalar<'static, BenchEmu> {
@@ -79,7 +76,7 @@ pub fn alloc_sponge(
     emu: &mut BenchEmu,
     _rng: &mut StdRng,
 ) -> Sponge<'static, BenchEmu, PoseidonFp> {
-    Sponge::new(emu, Pasta::circuit_poseidon(Pasta::baked()))
+    Sponge::new(emu, &PoseidonFp)
 }
 
 // Parameterized allocators for collections
@@ -89,7 +86,7 @@ pub fn alloc_elems<const N: usize>(
 ) -> Vec<Element<'static, BenchEmu>> {
     (0..N)
         .map(|_| {
-            let v = Fp::random(&mut *rng);
+            let v = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
             Element::alloc(emu, &mut (), BenchEmu::just(|| v)).unwrap()
         })
         .collect()
@@ -108,5 +105,7 @@ pub fn alloc_bools<const N: usize>(
 }
 
 pub fn alloc_coeffs<const N: usize>(_emu: &mut BenchEmu, rng: &mut StdRng) -> Vec<Fp> {
-    (0..N).map(|_| Fp::random(&mut *rng)).collect()
+    (0..N)
+        .map(|_| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes)))
+        .collect()
 }

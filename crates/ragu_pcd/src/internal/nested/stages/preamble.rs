@@ -4,15 +4,15 @@
 
 use core::marker::PhantomData;
 
-use ragu_arithmetic::{CurveAffine, Cycle};
 use ragu_circuits::polynomials::Rank;
 use ragu_core::{
-    Result,
+    Cycle, Result,
     drivers::{Driver, DriverValue},
     gadgets::{Bound, Gadget, Kind},
     maybe::Maybe,
 };
 use ragu_primitives::{Point, io::Write};
+use udon::curve::Affine;
 
 use crate::{
     Proof,
@@ -31,7 +31,7 @@ pub const NUM_POINTS: usize = 31;
 /// so that loading can enforce them against [`PointsStage`] and copying
 /// can verify them against the child's bridge stage content.
 #[derive(Clone)]
-pub struct ChildWitness<C: CurveAffine> {
+pub struct ChildWitness<C: Affine> {
     // Field order matches the `_10_p` accumulation order.
     /// Commitment from the child's application circuit.
     pub application: C,
@@ -66,7 +66,7 @@ pub struct ChildWitness<C: CurveAffine> {
     pub stashed_p: C,
 }
 
-impl<C: CurveAffine> ChildWitness<C> {
+impl<C: Affine> ChildWitness<C> {
     /// Construct from a child proof's commitments.
     pub fn from_proof<CC: Cycle<HostCurve = C>, R: Rank>(proof: &Proof<CC, R>) -> Self {
         use crate::internal::native::RxComponent;
@@ -91,7 +91,7 @@ impl<C: CurveAffine> ChildWitness<C> {
 }
 
 /// Witness data for the preamble bridge stage.
-pub struct Witness<C: CurveAffine> {
+pub struct Witness<C: Affine> {
     /// Commitment from the native preamble stage.
     pub native_preamble: C,
     /// Witness data from the left child proof.
@@ -102,7 +102,7 @@ pub struct Witness<C: CurveAffine> {
 
 /// Output gadget for a single child proof in the preamble bridge stage.
 #[derive(Gadget, Write)]
-pub struct ChildOutput<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> {
+pub struct ChildOutput<'dr, D: Driver<'dr>, C: Affine<Base = D::F>> {
     // Field order matches `_10_p` accumulation order.
     /// Point commitment from the child's application circuit.
     #[ragu(gadget)]
@@ -152,7 +152,7 @@ pub struct ChildOutput<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> {
     pub stashed_p: Point<'dr, D, C>,
 }
 
-impl<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> core::ops::Index<RxIndex>
+impl<'dr, D: Driver<'dr>, C: Affine<Base = D::F>> core::ops::Index<RxIndex>
     for ChildOutput<'dr, D, C>
 {
     type Output = Point<'dr, D, C>;
@@ -175,7 +175,7 @@ impl<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> core::ops::Index<RxIndex>
     }
 }
 
-impl<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> ChildOutput<'dr, D, C> {
+impl<'dr, D: Driver<'dr>, C: Affine<Base = D::F>> ChildOutput<'dr, D, C> {
     fn alloc(dr: &mut D, witness: DriverValue<D, &ChildWitness<C>>) -> Result<Self> {
         Ok(ChildOutput {
             application: Point::alloc(dr, witness.as_ref().map(|w| w.application))?,
@@ -201,7 +201,7 @@ impl<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> ChildOutput<'dr, D, C> {
 ///
 /// This is stage communication data, not part of the circuit's public instance.
 #[derive(Gadget, Write)]
-pub struct Output<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> {
+pub struct Output<'dr, D: Driver<'dr>, C: Affine<Base = D::F>> {
     /// Point commitment from the native preamble stage.
     #[ragu(gadget)]
     pub native_preamble: Point<'dr, D, C>,
@@ -214,11 +214,11 @@ pub struct Output<'dr, D: Driver<'dr>, C: CurveAffine<Base = D::F>> {
 }
 
 #[derive(Default)]
-pub struct Stage<C: CurveAffine, R> {
+pub struct Stage<C: Affine, R> {
     _marker: PhantomData<(C, R)>,
 }
 
-impl<C: CurveAffine, R: Rank> ragu_circuits::staging::Stage<C::Base, R> for Stage<C, R> {
+impl<C: Affine, R: Rank> ragu_circuits::staging::Stage<C::Base, R> for Stage<C, R> {
     type Parent = PointsStage<C, NUM_ENDOSCALING_POINTS>;
     type Witness<'source> = &'source Witness<C>;
     type OutputKind = Kind![C::Base; Output<'_, _, C>];
@@ -245,7 +245,7 @@ impl<C: CurveAffine, R: Rank> ragu_circuits::staging::Stage<C::Base, R> for Stag
 
 #[cfg(test)]
 mod tests {
-    use ragu_pasta::EqAffine;
+    use ragu_core::pasta::EqAffine;
 
     use super::*;
     use crate::internal::tests::{R, assert_stage_values};

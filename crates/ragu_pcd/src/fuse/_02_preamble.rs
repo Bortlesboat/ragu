@@ -3,9 +3,9 @@
 //! This sets the preamble fields on the [`ProofBuilder`], which commits to the
 //! instance and trace polynomials used in the fuse step.
 
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_circuits::{polynomials::Rank, staging::StageExt};
-use ragu_core::Result;
+use ragu_core::{Cycle, Result};
+use rand::CryptoRng;
 
 use crate::{
     Application, Proof,
@@ -43,7 +43,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         )?;
 
         let rx = native::stages::preamble::Stage::<C, R, HEADER_SIZE>::rx(
-            C::CircuitField::random(&mut *rng),
+            udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
             &preamble_witness,
         )?;
 
@@ -60,7 +60,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &mut ProofBuilder<'_, C, R, B>,
     ) -> Result<()> {
         let bridge_rx = nested::stages::preamble::Stage::<C::HostCurve, R>::rx(
-            C::ScalarField::random(&mut *rng),
+            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
             &nested::stages::preamble::Witness {
                 native_preamble: builder.native_preamble_commitment(),
                 left: nested::stages::preamble::ChildWitness::from_proof(left),

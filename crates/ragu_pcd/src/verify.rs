@@ -2,14 +2,15 @@
 
 use core::iter::once;
 
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_backend::Backend;
 use ragu_circuits::{
     polynomials::{Rank, sparse},
     registry::CircuitIndex,
 };
-use ragu_core::{Result, drivers::emulator::Emulator, maybe::Maybe};
+use ragu_core::{Cycle, Result, drivers::emulator::Emulator, maybe::Maybe};
 use ragu_primitives::Element;
+use rand::CryptoRng;
+use udon::field::Field;
 
 use crate::{
     Application, Pcd, Proof, SelectableBackend,
@@ -48,9 +49,9 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: SelectableBackend>
         mut rng: RNG,
     ) -> Result<bool> {
         // Sample verification challenges w, y, and z.
-        let w = C::CircuitField::random(&mut rng);
-        let y = C::CircuitField::random(&mut rng);
-        let z = C::CircuitField::random(&mut rng);
+        let w = udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes));
+        let y = udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes));
+        let z = udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes));
 
         // The proof's circuit_id selects which wiring polynomial the verifier
         // checks against, and every domain point carries one, so an in-domain id
@@ -125,8 +126,8 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: SelectableBackend>
         // Check all nested revdot claims.
         let nested_revdot_claims = {
             let nested_source = nested::SingleProofSource { proof: pcd.proof() };
-            let y_nested = C::ScalarField::random(&mut rng);
-            let z_nested = C::ScalarField::random(&mut rng);
+            let y_nested = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
+            let z_nested = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
             let mut nested_builder = claims::Builder::<_, C::ScalarField, R, Verifier<B>>::new(
                 &self.nested_registry,
                 y_nested,
@@ -268,12 +269,9 @@ mod nested {
 
 #[cfg(test)]
 mod tests {
-    use ragu_arithmetic::{
-        ff::Field,
-        rand::{SeedableRng, rngs::StdRng},
-    };
     use ragu_circuits::{polynomials::ProductionRank, registry::CircuitIndex};
-    use ragu_pasta::Pasta;
+    use ragu_core::pasta::Pasta;
+    use rand::{SeedableRng, rngs::StdRng};
 
     use super::*;
     use crate::ApplicationBuilder;
@@ -282,7 +280,7 @@ mod tests {
     const HEADER_SIZE: usize = 4;
 
     fn create_test_app() -> crate::Application<'static, Pasta, TestR, HEADER_SIZE> {
-        let pasta = Pasta::baked();
+        let pasta = crate::pasta::baked();
         ApplicationBuilder::<Pasta, TestR, HEADER_SIZE>::new()
             .finalize(pasta)
             .expect("failed to create test application")

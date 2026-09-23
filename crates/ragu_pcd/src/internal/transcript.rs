@@ -36,13 +36,13 @@
 //! Transcripts of protocols with different interaction sequences are
 //! domain-separated by protocol tags during construction [`Transcript::new`].
 
-use ragu_arithmetic::{PoseidonPermutation, ff::PrimeField};
-use ragu_core::{Result, drivers::Driver};
+use ragu_core::{PoseidonPermutation, Result, drivers::Driver};
 use ragu_primitives::{
     Element,
     io::Buffer,
     poseidon::{SaveError, Sponge, SpongeState},
 };
+use udon::field::{FftField, Field};
 
 /// Transcript wrapper around Poseidon [`Sponge`] for Fiat-Shamir transforms.
 pub struct Transcript<'dr, D: Driver<'dr>, P: PoseidonPermutation<D::F>> {
@@ -81,7 +81,7 @@ impl<'dr, D: Driver<'dr>, P: PoseidonPermutation<D::F>> Transcript<'dr, D, P> {
     /// [#1]: https://github.com/tachyon-zcash/ragu/issues/1
     pub fn new(dr: &mut D, params: &'dr P, tag: &[u8]) -> Result<Self>
     where
-        D::F: PrimeField,
+        D::F: FftField,
     {
         let mut sponge = Sponge::new(dr, params);
 
@@ -184,9 +184,11 @@ mod tests {
     use alloc::vec::Vec;
 
     use proptest::prelude::*;
-    use ragu_arithmetic::{Cycle, ff::Field};
-    use ragu_core::maybe::Maybe;
-    use ragu_pasta::{Fp, Pasta};
+    use ragu_core::{
+        Cycle,
+        maybe::Maybe,
+        pasta::{Fp, Pasta},
+    };
     use ragu_primitives::{GadgetExt, Simulator};
     use ragu_testing::strategies;
 
@@ -236,7 +238,7 @@ mod tests {
         #[test]
         fn proptest_domain_separation(v in strategies::prime_field_element::<Fp>(), t1 in arb_tag(), t2 in arb_tag()) {
             prop_assume!(t1 != t2);
-            let params = Pasta::baked();
+            let params = crate::pasta::baked();
             let mut dr = Sim::new();
             let poseidon = Pasta::circuit_poseidon(params);
 
@@ -254,7 +256,7 @@ mod tests {
 
         #[test]
         fn proptest_determinism(vs in arb_values(1..=8)) {
-            let params = Pasta::baked();
+            let params = crate::pasta::baked();
             let poseidon = Pasta::circuit_poseidon(params);
 
             let squeeze = |vs: &[Fp]| {
@@ -272,7 +274,7 @@ mod tests {
 
         #[test]
         fn proptest_squeezes_distinct(v in strategies::prime_field_element::<Fp>()) {
-            let params = Pasta::baked();
+            let params = crate::pasta::baked();
             let mut dr = Sim::new();
 
             let mut t = Transcript::new(&mut dr, Pasta::circuit_poseidon(params), b"distinct").unwrap();
@@ -308,7 +310,7 @@ mod tests {
             before_final  in strategies::prime_field_element::<Fp>(),
             after_rest    in prop::collection::vec(arb_op(), 0..=4),
         ) {
-            let params = Pasta::baked();
+            let params = crate::pasta::baked();
             let poseidon = Pasta::circuit_poseidon(params);
 
             let before_ops: Vec<Op> = before_prefix
@@ -353,7 +355,7 @@ mod tests {
         expected = "must squeeze at least once before transitioning back to absorb mode"
     )]
     fn test_skip_squeeze_after_resume() {
-        let params = Pasta::baked();
+        let params = crate::pasta::baked();
         let mut dr = Sim::new();
 
         let mut t =

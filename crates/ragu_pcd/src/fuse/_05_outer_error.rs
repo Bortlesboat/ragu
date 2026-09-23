@@ -6,17 +6,18 @@
 //! the $k(Y)$ evaluations for the child proofs, as well as the temporary sponge
 //! state used to split the hashing operations across two circuits.
 
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_circuits::{
     polynomials::{Rank, sparse},
     staging::{Stage as StageTrait, StageExt},
 };
 use ragu_core::{
-    Result,
+    Cycle, Result,
     drivers::{Driver, emulator::Emulator},
     maybe::Maybe,
 };
 use ragu_primitives::{Element, vec::FixedVec};
+use rand::CryptoRng;
+use udon::field::Field;
 
 use super::claims::{FoldKey, FuseBuilder, TrackedPoly};
 use crate::{
@@ -164,7 +165,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
     ) -> Result<()> {
         let rx =
             native::stages::outer_error::Stage::<C, R, HEADER_SIZE, native::RevdotParameters>::rx(
-                C::CircuitField::random(&mut *rng),
+                udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
                 outer_error_witness,
             )?;
 

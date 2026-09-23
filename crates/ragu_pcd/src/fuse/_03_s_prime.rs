@@ -3,9 +3,10 @@
 //! This sets the s-prime fields on the [`ProofBuilder`], which commits to the
 //! $m(w, x_i, Y)$ polynomials for the $i$th child proof's $x$ challenge.
 
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_circuits::{polynomials::Rank, registry::RegistryAt, staging::StageExt};
-use ragu_core::Result;
+use ragu_core::{Cycle, Result};
+use rand::CryptoRng;
+use udon::curve::Affine;
 
 use super::NativeSPrime;
 use crate::{Application, Proof, internal::nested, proof::ProofBuilder};
@@ -33,7 +34,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &mut ProofBuilder<'_, C, R, B>,
     ) -> Result<()> {
         let bridge_rx = nested::stages::s_prime::Stage::<C::HostCurve, R>::rx(
-            C::ScalarField::random(&mut *rng),
+            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
             &nested::stages::s_prime::Witness {
                 registry_wx0: native.registry_wx0_commitment,
                 registry_wx1: native.registry_wx1_commitment,
@@ -58,11 +59,15 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         let registry_wx0_poly = B::registry_at_x(native_registry, x0);
         let registry_wx1_poly = B::registry_at_x(native_registry, x1);
         let host_gen = C::host_generators(self.params);
-        let [registry_wx0_commitment, registry_wx1_commitment] =
-            ragu_arithmetic::batch_to_affine([
+        let mut commitments = [<C::HostCurve as Affine>::identity(); 2];
+        <C::HostCurve as Affine>::batch_to_affine(
+            &[
                 B::sparse_commit(&registry_wx0_poly, host_gen),
                 B::sparse_commit(&registry_wx1_poly, host_gen),
-            ]);
+            ],
+            &mut commitments,
+        );
+        let [registry_wx0_commitment, registry_wx1_commitment] = commitments;
 
         Ok(NativeSPrime {
             registry_wx0_poly,

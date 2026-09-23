@@ -31,22 +31,20 @@
 
 #![no_main]
 
-use arbitrary::Arbitrary;
-use ff::WithSmallOrderMulGroup;
-use group::{Curve, Group};
-use group::CurveAffine as _;
-use libfuzzer_sys::fuzz_target;
-use pasta_curves::Fp;
-use pasta_curves::arithmetic::CurveAffine;
-use ragu_core::maybe::Maybe;
-use ragu_pasta::{EpAffine, Fq};
-use ragu_primitives::{Boolean, NonzeroBank, Point, Simulator, allocator::Standard};
-
 use std::sync::LazyLock;
+
+use arbitrary::Arbitrary;
+use libfuzzer_sys::fuzz_target;
+use ragu_core::{
+    maybe::Maybe,
+    pasta::{EpAffine, Fp, Fq},
+};
+use ragu_primitives::{Boolean, NonzeroBank, Point, Simulator, allocator::Standard};
+use udon::curve::{Affine, Projective};
 
 /// Precomputed table of non-identity Pallas points.
 ///
-/// Replaces per-input `EpAffine::generator() * Fq::from(seed)` (~50µs
+/// Replaces per-input `EpAffine::GENERATOR * Fq::from(seed)` (~50µs
 /// each) with a 64-point modular lookup. The point-identity tests
 /// (negate involution, endo cube, conditional_*, add commutativity,
 /// double-and-add) exercise *algebraic gadget paths*, not point-shape
@@ -56,10 +54,10 @@ use std::sync::LazyLock;
 /// guard) and whether `2P` and `Q` collide on x (existing skip guard).
 const POINT_TABLE_LEN: usize = 64;
 static POINT_TABLE: LazyLock<[EpAffine; POINT_TABLE_LEN]> = LazyLock::new(|| {
-    let mut points = [EpAffine::generator(); POINT_TABLE_LEN];
+    let mut points = [EpAffine::GENERATOR; POINT_TABLE_LEN];
     for (i, p) in points.iter_mut().enumerate() {
         if i > 0 {
-            *p = (EpAffine::generator() * Fq::from(i as u64)).to_affine();
+            *p = (EpAffine::GENERATOR * Fq::from(i as u64)).to_affine();
         }
     }
     points
@@ -72,24 +70,23 @@ fn point_from_seed(seed: u64) -> EpAffine {
 
 /// Native negation of an EpAffine point.
 fn native_negate(p: EpAffine) -> EpAffine {
-    (-p.to_curve()).to_affine()
+    (-p.to_projective()).to_affine()
 }
 
 /// Native endomorphism: multiply the x-coordinate by ζ (Fp::ZETA).
 fn native_endo(p: EpAffine) -> EpAffine {
-    let coords = p.coordinates().unwrap();
-    let new_x = *coords.x() * Fp::ZETA;
-    EpAffine::from_xy(new_x, *coords.y()).unwrap()
+    let (x, y) = Affine::coordinates(&p).unwrap();
+    <EpAffine as Affine>::from_xy(x * Fp::ZETA, y).unwrap()
 }
 
 /// Native point addition.
 fn native_add(p: EpAffine, q: EpAffine) -> EpAffine {
-    (p.to_curve() + q.to_curve()).to_affine()
+    (p.to_projective() + q.to_projective()).to_affine()
 }
 
 /// Native point doubling.
 fn native_double(p: EpAffine) -> EpAffine {
-    (p.to_curve().double()).to_affine()
+    (p.to_projective().double()).to_affine()
 }
 
 #[derive(Arbitrary, Debug)]
@@ -123,7 +120,7 @@ fuzz_target!(|input: Input| {
     // div-by-zero on (x_q - x_p)).
     let p_coords = p.coordinates().unwrap();
     let q_coords = q.coordinates().unwrap();
-    if p_coords.x() == q_coords.x() {
+    if p_coords.0 == q_coords.0 {
         return;
     }
 
@@ -131,7 +128,7 @@ fuzz_target!(|input: Input| {
     // is never the identity for non-identity P — coordinates always
     // exist.
     let p_doubled = native_double(p);
-    let p_doubled_x = *p_doubled.coordinates().unwrap().x();
+    let p_doubled_x = p_doubled.coordinates().unwrap().0;
 
     let result = Simulator::<Fp>::simulate((p, q), |dr, witness| {
         let allocator = &mut Standard::new();
@@ -223,7 +220,7 @@ fuzz_target!(|input: Input| {
         // double_and_add_incomplete: P.dna(Q) computes 2*P + Q.
         // Skip when 2*P and Q share an x-coordinate (would make the
         // inner add_incomplete's divide fail).
-        let q_x = *q_coords.x();
+        let q_x = q_coords.0;
         if p_doubled_x != q_x {
             let dna = NonzeroBank::scope(dr, |dr, bank| {
                 p_pt.double_and_add_incomplete(dr, &q_pt, bank)

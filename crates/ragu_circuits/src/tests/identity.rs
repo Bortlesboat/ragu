@@ -1,13 +1,13 @@
-use ragu_arithmetic::ff::Field;
 use ragu_core::{
     Result,
     drivers::{Driver, DriverValue, LinearExpression},
     gadgets::{Bound, Kind},
     maybe::{Always, Maybe},
+    pasta::Fp,
     routines::{Prediction, Routine},
 };
-use ragu_pasta::Fp;
 use ragu_primitives::{Element, Simulator, allocator::Standard};
+use rand::Rng;
 
 use crate::{
     Circuit, WithAux,
@@ -2087,8 +2087,8 @@ where
 /// [`BaseFingerprint`]: crate::BaseFingerprint
 #[test]
 fn test_typeid_does_not_affect_polynomial() {
-    let x = Fp::random(&mut rand::rng());
-    let y = Fp::random(&mut rand::rng());
+    let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+    let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
 
     /// Compares s(x,y) for a single-input circuit vs a pair-input circuit
     /// whose routines share the same `BaseFingerprint`.

@@ -1,12 +1,11 @@
 //! Native curve circuits for recursive verification.
 
-use ragu_arithmetic::Cycle;
 use ragu_circuits::{
     polynomials::Rank,
     registry::{CircuitIndex, RegistryBuilder},
     staging::StageExt,
 };
-use ragu_core::Result;
+use ragu_core::{Cycle, Result};
 use ragu_primitives::vec::ConstLen;
 
 use crate::{internal::fold_revdot::Parameters, step};

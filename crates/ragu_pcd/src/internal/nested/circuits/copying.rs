@@ -13,7 +13,6 @@
 
 use core::marker::PhantomData;
 
-use ragu_arithmetic::CurveAffine;
 use ragu_circuits::{
     WithAux,
     polynomials::Rank,
@@ -26,6 +25,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::GadgetExt as _;
+use udon::curve::Affine;
 
 use crate::internal::{
     Side,
@@ -34,12 +34,12 @@ use crate::internal::{
 };
 
 /// Copying circuit that relates the current preamble to a child's stages.
-pub struct Circuit<C: CurveAffine, R: Rank> {
+pub struct Circuit<C: Affine, R: Rank> {
     side: Side,
     _marker: PhantomData<(C, R)>,
 }
 
-impl<C: CurveAffine, R: Rank> Circuit<C, R> {
+impl<C: Affine, R: Rank> Circuit<C, R> {
     pub fn new(side: Side) -> Self {
         Self {
             side,
@@ -48,7 +48,7 @@ impl<C: CurveAffine, R: Rank> Circuit<C, R> {
     }
 }
 
-impl<C: CurveAffine, R: Rank> MultiStageCircuit<C::Base, R> for Circuit<C, R> {
+impl<C: Affine, R: Rank> MultiStageCircuit<C::Base, R> for Circuit<C, R> {
     type Last = stages::eval::Stage<C, R>;
     type Instance<'source> = ();
     type Witness<'source> = ();

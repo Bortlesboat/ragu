@@ -1,14 +1,15 @@
 use criterion::{Criterion, criterion_group, criterion_main};
-use ff::Field;
-use ragu_arithmetic::Cycle;
 use ragu_circuits::polynomials::ProductionRank;
-use ragu_pasta::{Fp, Pasta};
+use ragu_core::{
+    Cycle,
+    pasta::{Fp, Pasta},
+};
 use ragu_pcd::ApplicationBuilder;
 use ragu_testing::pcd::nontrivial;
-use rand::{SeedableRng, rngs::StdRng};
+use rand::{Rng, SeedableRng, rngs::StdRng};
 
 fn registry_bench(c: &mut Criterion) {
-    let pasta = Pasta::baked();
+    let pasta = ragu_pcd::pasta::baked();
     let poseidon_params = Pasta::circuit_poseidon(pasta);
 
     // Time finalize separately: build the ApplicationBuilder, then bench only finalize.
@@ -34,9 +35,9 @@ fn registry_bench(c: &mut Criterion) {
 
     // Use deterministic "random" field elements.
     let mut rng = StdRng::seed_from_u64(0xdead);
-    let w = Fp::random(&mut rng);
-    let x = Fp::random(&mut rng);
-    let y = Fp::random(&mut rng);
+    let w = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+    let x = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+    let y = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
 
     c.bench_function("registry::wx", |b| {
         b.iter(|| registry.wx(w, x));

@@ -32,15 +32,15 @@ mod access;
 use alloc::{sync::Arc, vec, vec::Vec};
 
 pub(crate) use builder::ProofBuilder;
-use ragu_arithmetic::{Cycle, ff::Field};
 use ragu_circuits::{
     CircuitExt,
     polynomials::{Rank, sparse},
     registry::CircuitIndex,
     staging::{MultiStage, StageExt},
 };
-use ragu_core::Result;
+use ragu_core::{Cycle, Result};
 use ragu_primitives::{extract_endoscalar, vec::Len};
+use udon::field::Field;
 
 use crate::{
     header::Header,
@@ -100,7 +100,7 @@ impl<C: Cycle, R: Rank, H: Header<C::CircuitField>> Clone for Pcd<C, R, H> {
 /// Stage rx polynomials from a child proof, stored so the verifier can
 /// check copying circuit claims.
 #[derive(Clone)]
-pub(crate) struct ChildStageRx<F: ragu_arithmetic::ff::PrimeField, R: Rank> {
+pub(crate) struct ChildStageRx<F: udon::field::FftField, R: Rank> {
     pub points_stage: Arc<sparse::Polynomial<F, R>>,
     pub bridge_s_prime: Arc<sparse::Polynomial<F, R>>,
     pub bridge_inner_error: Arc<sparse::Polynomial<F, R>>,
@@ -110,7 +110,7 @@ pub(crate) struct ChildStageRx<F: ragu_arithmetic::ff::PrimeField, R: Rank> {
     pub bridge_eval: Arc<sparse::Polynomial<F, R>>,
 }
 
-impl<F: ragu_arithmetic::ff::PrimeField, R: Rank> ChildStageRx<F, R> {
+impl<F: udon::field::FftField, R: Rank> ChildStageRx<F, R> {
     /// Dispatch to the bridge-stage rx polynomial named by `kind`.
     pub(crate) fn bridge_at(&self, kind: ChildBridgeKind) -> &sparse::Polynomial<F, R> {
         match kind {
@@ -489,7 +489,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
     /// Shared by `compute_p` (in `fuse/_10_p.rs`) and by
     /// [`trivial_proof`](Self::trivial_proof), so the nested
     /// endoscaling setup lives in one place.
-    pub(crate) fn compute_endoscaling<RNG: ragu_arithmetic::rand::CryptoRng>(
+    pub(crate) fn compute_endoscaling<RNG: rand::CryptoRng>(
         &self,
         rng: &mut RNG,
         beta_endo: u128,
@@ -666,7 +666,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
             points.push(host_commitment); // b
             points.push(registry_xy_commitment); // native_registry_xy
 
-            let mut trivial_rng = <ragu_arithmetic::rand::rngs::StdRng as ragu_arithmetic::rand::SeedableRng>::from_seed([0u8; 32]);
+            let mut trivial_rng = <rand::rngs::StdRng as rand::SeedableRng>::from_seed([0u8; 32]);
             self.compute_endoscaling(
                 &mut trivial_rng,
                 beta_endo,

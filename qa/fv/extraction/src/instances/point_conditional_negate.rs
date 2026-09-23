@@ -1,5 +1,4 @@
-use group::CurveAffine;
-use ragu_pasta::{EpAffine, Fp};
+use ragu_core::pasta::{EpAffine, Fp};
 use ragu_primitives::Point;
 
 use crate::{
@@ -25,7 +24,7 @@ impl CircuitInstance for PointConditionalNegateInstance {
         let point_wires = dr.alloc_input_wires(2);
 
         let cond = boolean_from_wire(cond_wires[0].clone())?;
-        let point_template = Point::constant(dr, EpAffine::generator())?;
+        let point_template = Point::constant(dr, EpAffine::GENERATOR)?;
         let point = WireDeserializer::new(point_wires).into_gadget(&point_template)?;
 
         let result = point.conditional_negate(dr, &cond)?;

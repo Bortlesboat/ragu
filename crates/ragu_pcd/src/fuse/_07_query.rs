@@ -8,10 +8,10 @@
 //! This phase of the fuse operation is also used to commit to the $m(W, x, y)$
 //! restriction.
 
-use ragu_arithmetic::{Cycle, ff::Field, rand::CryptoRng};
 use ragu_circuits::{polynomials::Rank, staging::StageExt};
-use ragu_core::{Result, drivers::Driver, maybe::Maybe};
+use ragu_core::{Cycle, Result, drivers::Driver, maybe::Maybe};
 use ragu_primitives::Element;
+use rand::CryptoRng;
 
 use super::RegistryWy;
 use crate::{Application, Proof, internal::native, proof::ProofBuilder};
@@ -67,7 +67,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         };
 
         let rx = native::stages::query::Stage::<C, R, HEADER_SIZE>::rx(
-            C::CircuitField::random(&mut *rng),
+            udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
             &query_witness,
         )?;
 

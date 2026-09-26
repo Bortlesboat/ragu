@@ -31,7 +31,7 @@ arbitrary = { version = "1", features = ["derive"] }
 # This workspace cannot inherit repo-root [workspace.dependencies], so keep
 # the direct rand version in sync with the repo-root dependency set. Field and
 # curve types come through ragu_core.
-udon = { package = "zakura-udon", git = "https://github.com/tachyon-zcash/udon", rev = "4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307", default-features = false, features = ["traits"] }
+udon = { package = "zakura-udon", git = "https://github.com/tachyon-zcash/udon", rev = "b58caa9a237f74011756fa839cd3c730272eaad5", default-features = false, features = ["traits"] }
 ragu_primitives = { path = "../../crates/ragu_primitives" }
 ragu_core = { path = "../../crates/ragu_core" }
 ragu_circuits = { path = "../../crates/ragu_circuits" }

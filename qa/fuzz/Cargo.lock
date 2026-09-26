@@ -759,7 +759,7 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 [[package]]
 name = "zakura-bento"
 version = "0.1.0"
-source = "git+https://github.com/tachyon-zcash/udon?rev=4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307#4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307"
+source = "git+https://github.com/tachyon-zcash/udon?rev=b58caa9a237f74011756fa839cd3c730272eaad5#b58caa9a237f74011756fa839cd3c730272eaad5"
 dependencies = [
  "zakura-bento-core",
  "zakura-bento-macros",
@@ -768,12 +768,12 @@ dependencies = [
 [[package]]
 name = "zakura-bento-core"
 version = "0.1.0"
-source = "git+https://github.com/tachyon-zcash/udon?rev=4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307#4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307"
+source = "git+https://github.com/tachyon-zcash/udon?rev=b58caa9a237f74011756fa839cd3c730272eaad5#b58caa9a237f74011756fa839cd3c730272eaad5"
 
 [[package]]
 name = "zakura-bento-macros"
 version = "0.1.0"
-source = "git+https://github.com/tachyon-zcash/udon?rev=4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307#4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307"
+source = "git+https://github.com/tachyon-zcash/udon?rev=b58caa9a237f74011756fa839cd3c730272eaad5#b58caa9a237f74011756fa839cd3c730272eaad5"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -799,7 +799,7 @@ dependencies = [
 [[package]]
 name = "zakura-udon"
 version = "0.1.0"
-source = "git+https://github.com/tachyon-zcash/udon?rev=4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307#4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307"
+source = "git+https://github.com/tachyon-zcash/udon?rev=b58caa9a237f74011756fa839cd3c730272eaad5#b58caa9a237f74011756fa839cd3c730272eaad5"
 dependencies = [
  "zakura-bento",
 ]

@@ -79,8 +79,8 @@ noncontiguous inputs; [`dot`] and [`dot_iter`] expose the same Pasta kernels
 directly. These helpers provide the scalar operations underlying polynomial
 evaluation and inner-product checks.
 
-[`udon`]: https://github.com/tachyon-zcash/udon/tree/4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307/crates/udon
-[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307/crates/udon/src/polynomial/evaluation.rs
-[`evaluate_iter`]: https://github.com/tachyon-zcash/udon/blob/4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307/crates/udon/src/polynomial/evaluation.rs
-[`dot`]: https://github.com/tachyon-zcash/udon/blob/4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307/crates/udon/src/field/pasta/products/mod.rs
-[`dot_iter`]: https://github.com/tachyon-zcash/udon/blob/4efcf2dd7b7ffb4be25f65f2a2796999e1ed1307/crates/udon/src/field/pasta/products/mod.rs
+[`udon`]: https://github.com/tachyon-zcash/udon/tree/b58caa9a237f74011756fa839cd3c730272eaad5/crates/udon
+[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/b58caa9a237f74011756fa839cd3c730272eaad5/crates/udon/src/polynomial/evaluation.rs
+[`evaluate_iter`]: https://github.com/tachyon-zcash/udon/blob/b58caa9a237f74011756fa839cd3c730272eaad5/crates/udon/src/polynomial/evaluation.rs
+[`dot`]: https://github.com/tachyon-zcash/udon/blob/b58caa9a237f74011756fa839cd3c730272eaad5/crates/udon/src/field/pasta/products/mod.rs
+[`dot_iter`]: https://github.com/tachyon-zcash/udon/blob/b58caa9a237f74011756fa839cd3c730272eaad5/crates/udon/src/field/pasta/products/mod.rs

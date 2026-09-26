@@ -2,7 +2,7 @@
 
 use proptest::{prelude::*, sample::select, strategy::BoxedStrategy};
 use ragu_core::Coeff;
-use udon::{fft::Domain, field::FftField};
+use udon::field::FftField;
 
 /// Generates edge-biased and arbitrary `u64` values.
 pub fn edge_u64() -> impl Strategy<Value = u64> + Clone {
@@ -129,7 +129,7 @@ pub fn poly_with_roots<F>() -> BoxedStrategy<Vec<F>>
 where
     F: FftField + From<u64> + 'static,
 {
-    let w = Domain::<F>::new(6).expect("supported test domain").root();
+    let w = F::domain(6).expect("supported test domain").root();
 
     prop_oneof![
         select(vec![

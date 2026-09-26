@@ -331,20 +331,15 @@ fn sbox<'dr, D: Driver<'dr>, P: ragu_core::PoseidonPermutation<D::F>>(
     Ok(())
 }
 
-fn mds<'i, 'dr, D: Driver<'dr>>(
+fn mds<'dr, D: Driver<'dr>>(
     dr: &mut D,
     state: &mut [Element<'dr, D>],
-    matrix: impl ExactSizeIterator<Item = &'i [D::F]>,
+    matrix: &[impl AsRef<[D::F]>],
     scratch: &mut Vec<Element<'dr, D>>,
 ) -> Result<()> {
     assert_eq!(state.len(), matrix.len());
     scratch.clear();
-    scratch.extend(
-        state
-            .iter()
-            .zip(matrix)
-            .map(|(_, coeffs)| multiadd(dr, state, coeffs)),
-    );
+    scratch.extend(matrix.iter().map(|row| multiadd(dr, state, row.as_ref())));
     state.clone_from_slice(&scratch[..]);
 
     Ok(())
@@ -395,14 +390,16 @@ impl<F: Field, P: ragu_core::PoseidonPermutation<F>> Routine<F> for Permutation<
         mut state: Bound<'dr, D, Self::Input>,
         _: DriverValue<D, Self::Aux<'dr>>,
     ) -> Result<Bound<'dr, D, Self::Output>> {
-        let mut rcs = self.params.round_constants();
+        let mut rcs = self.params.round_constants().iter();
         let mut mds_scratch = Vec::with_capacity(P::T);
 
         let mut round = |dr: &mut D, elems| {
             add_round_constants(
                 dr,
                 &mut state.values[..],
-                rcs.next().expect("round constants match total round count"),
+                rcs.next()
+                    .expect("round constants match total round count")
+                    .as_ref(),
             );
             sbox::<_, P>(dr, &mut state.values[0..elems])?;
             mds(

@@ -239,7 +239,7 @@ impl<'params, F: FftField, R: Rank> RegistryBuilder<'params, F, R> {
         }
 
         let log2_circuits = self.log2_circuits();
-        let domain = Domain::<F>::new(log2_circuits).expect("supported registry domain");
+        let domain = F::domain(log2_circuits).expect("supported registry domain");
 
         let circuits: Vec<_> = self
             .internal_circuits

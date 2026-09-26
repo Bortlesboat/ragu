@@ -751,7 +751,7 @@ impl<'dr, D: Driver<'dr, F: udon::field::FftField>> Inverter<'dr, D> {
                 .collect::<Vec<_>>();
 
             let mut scratch = vec![D::F::ZERO; differences.len()];
-            udon::field::batch_invert_with_scratch(&mut differences, &mut scratch);
+            D::F::batch_invert(&mut differences, &mut scratch);
 
             differences.into_iter()
         });

@@ -52,18 +52,20 @@ PARAMS_TEMPLATE = """
 pub(crate) struct {struct_name};
 
 impl PoseidonPermutation<{field}> for {struct_name} {{
+    type Row = [{field}; 3];
+
     const T: usize = 3;
     const RATE: usize = 2;
     const FULL_ROUNDS: usize = 8;
     const PARTIAL_ROUNDS: usize = 56;
-    const ALPHA: isize = 5;
+    const ALPHA: u32 = 5;
 
-    fn round_constants(&self) -> impl Iterator<Item = &[{field}]> {{
-        {prefix}_ROUND_CONSTANTS.iter().copied()
+    fn round_constants(&self) -> &[Self::Row] {{
+        {prefix}_ROUND_CONSTANTS
     }}
 
-    fn mds_matrix(&self) -> impl ExactSizeIterator<Item = &[{field}]> {{
-        {prefix}_MDS.iter().copied()
+    fn mds_matrix(&self) -> &[Self::Row] {{
+        {prefix}_MDS
     }}
 }}
 """
@@ -123,7 +125,7 @@ def render_rows(macro, rows, indent="    "):
     out = []
     for row in rows:
         cells = ",\n".join(f"{indent}    {render_element(macro, v)}" for v in row)
-        out.append(f"{indent}&[\n{cells},\n{indent}],")
+        out.append(f"{indent}[\n{cells},\n{indent}],")
     return "\n".join(out)
 
 
@@ -171,10 +173,10 @@ def main():
             )
         )
         chunks.append(
-            f"const {prefix}_ROUND_CONSTANTS: &[&[{field}]] = &[\n"
+            f"const {prefix}_ROUND_CONSTANTS: &[[{field}; 3]] = &[\n"
             f"{render_rows(macro, round_constants)}\n];\n"
         )
-        chunks.append(f"const {prefix}_MDS: &[&[{field}]] = &[\n{render_rows(macro, mds)}\n];\n")
+        chunks.append(f"const {prefix}_MDS: &[[{field}; 3]] = &[\n{render_rows(macro, mds)}\n];\n")
         chunks.append(render_vectors(macro, field, vectors, prefix) + "\n")
 
         print(

@@ -73,8 +73,9 @@ $c_0 + c_1 X + \cdots + c_n X^n$.
 
 [`evaluate`] evaluates a polynomial at a point using Horner's method.
 [`dot`] computes the inner product $\langle \v{a}, \v{b} \rangle$ of
-two equal-length coefficient vectors. These helpers provide the scalar
-operations underlying polynomial evaluation and inner-product checks.
+two equal-length coefficient slices; [`dot_iter`] accepts iterators for reversed
+or noncontiguous inputs. These helpers provide the scalar operations underlying
+polynomial evaluation and inner-product checks.
 
 ### Polynomial Multiplication
 
@@ -85,17 +86,16 @@ optimized transforms through `FftField`.
 
 Given polynomials $a(X)$ of degree $d_a$ and $b(X)$ of degree $d_b$, it produces
 $c(X) = a(X) \cdot b(X)$ of degree
-$d_a + d_b$. Internally, both inputs are zero-padded to a power-of-two
-length, transformed into evaluation form via [`Domain::transform`],
-multiplied pointwise, and transformed back via
-[`Domain::inverse_transform`].
+$d_a + d_b$. When Pasta uses transforms, Udon expands each coefficient
+prefix into a power-of-two evaluation domain, multiplies pointwise, and
+interpolates the product. The intermediate evaluations stay in bit-reversed
+order to avoid extra permutations.
 
 Output and scratch are caller-supplied `&mut [F]` buffers, allowing their
 storage to be reused across multiplications.
 
-[`udon`]: https://github.com/tachyon-zcash/udon/tree/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon
-[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/poly/mod.rs
-[`dot`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/field/products.rs
-[`multiply`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/poly/mod.rs
-[`Domain::transform`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/fft/generic.rs
-[`Domain::inverse_transform`]: https://github.com/tachyon-zcash/udon/blob/b70477ecf21d44ebe16743d9316ba3a6d472bf1e/crates/udon/src/fft/generic.rs
+[`udon`]: https://github.com/tachyon-zcash/udon/tree/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon
+[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/polynomial/evaluation.rs
+[`dot`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/field/products.rs
+[`dot_iter`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/field/products.rs
+[`multiply`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/polynomial/multiplication.rs

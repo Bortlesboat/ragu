@@ -104,7 +104,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
     where
         D: Driver<'dr, F = C::CircuitField>,
     {
-        use udon::poly::divide_by_root_iter;
+        use udon::polynomial::divide_linear_rev;
 
         let w = *w.value().take();
         let y = *y.value().take();
@@ -121,66 +121,64 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
             .into_iter()
             .map(|query| match query {
                 StaticFQuery::LeftP => {
-                    divide_by_root_iter(left.native_p_poly().iter_coeffs(), left.u())
+                    divide_linear_rev(left.native_p_poly().iter_coeffs(), left.u())
                 }
                 StaticFQuery::RightP => {
-                    divide_by_root_iter(right.native_p_poly().iter_coeffs(), right.u())
+                    divide_linear_rev(right.native_p_poly().iter_coeffs(), right.u())
                 }
                 StaticFQuery::LeftRegistryXyAtW => {
-                    divide_by_root_iter(left.native_registry_xy_poly().iter_coeffs(), w)
+                    divide_linear_rev(left.native_registry_xy_poly().iter_coeffs(), w)
                 }
                 StaticFQuery::RightRegistryXyAtW => {
-                    divide_by_root_iter(right.native_registry_xy_poly().iter_coeffs(), w)
+                    divide_linear_rev(right.native_registry_xy_poly().iter_coeffs(), w)
                 }
                 StaticFQuery::RegistryWx0AtLeftY => {
-                    divide_by_root_iter(s_prime.registry_wx0_poly.iter_coeffs(), left.y())
+                    divide_linear_rev(s_prime.registry_wx0_poly.iter_coeffs(), left.y())
                 }
                 StaticFQuery::RegistryWx1AtRightY => {
-                    divide_by_root_iter(s_prime.registry_wx1_poly.iter_coeffs(), right.y())
+                    divide_linear_rev(s_prime.registry_wx1_poly.iter_coeffs(), right.y())
                 }
                 StaticFQuery::RegistryWx0AtY => {
-                    divide_by_root_iter(s_prime.registry_wx0_poly.iter_coeffs(), y)
+                    divide_linear_rev(s_prime.registry_wx0_poly.iter_coeffs(), y)
                 }
                 StaticFQuery::RegistryWx1AtY => {
-                    divide_by_root_iter(s_prime.registry_wx1_poly.iter_coeffs(), y)
+                    divide_linear_rev(s_prime.registry_wx1_poly.iter_coeffs(), y)
                 }
                 StaticFQuery::RegistryWyAtLeftX => {
-                    divide_by_root_iter(registry_wy.poly.iter_coeffs(), left.x())
+                    divide_linear_rev(registry_wy.poly.iter_coeffs(), left.x())
                 }
                 StaticFQuery::RegistryWyAtRightX => {
-                    divide_by_root_iter(registry_wy.poly.iter_coeffs(), right.x())
+                    divide_linear_rev(registry_wy.poly.iter_coeffs(), right.x())
                 }
-                StaticFQuery::RegistryWyAtX => {
-                    divide_by_root_iter(registry_wy.poly.iter_coeffs(), x)
-                }
+                StaticFQuery::RegistryWyAtX => divide_linear_rev(registry_wy.poly.iter_coeffs(), x),
                 StaticFQuery::RegistryXyAtW => {
-                    divide_by_root_iter(builder.native_registry_xy_poly().iter_coeffs(), w)
+                    divide_linear_rev(builder.native_registry_xy_poly().iter_coeffs(), w)
                 }
-                StaticFQuery::RegistryXyAtLeftCircuitId => divide_by_root_iter(
+                StaticFQuery::RegistryXyAtLeftCircuitId => divide_linear_rev(
                     builder.native_registry_xy_poly().iter_coeffs(),
                     left.circuit_id().omega_j(),
                 ),
-                StaticFQuery::RegistryXyAtRightCircuitId => divide_by_root_iter(
+                StaticFQuery::RegistryXyAtRightCircuitId => divide_linear_rev(
                     builder.native_registry_xy_poly().iter_coeffs(),
                     right.circuit_id().omega_j(),
                 ),
                 StaticFQuery::LeftAbAAtXz => {
-                    divide_by_root_iter(left[RxComponent::AbA].iter_coeffs(), xz)
+                    divide_linear_rev(left[RxComponent::AbA].iter_coeffs(), xz)
                 }
                 StaticFQuery::LeftAbBAtX => {
-                    divide_by_root_iter(left[RxComponent::AbB].iter_coeffs(), x)
+                    divide_linear_rev(left[RxComponent::AbB].iter_coeffs(), x)
                 }
                 StaticFQuery::RightAbAAtXz => {
-                    divide_by_root_iter(right[RxComponent::AbA].iter_coeffs(), xz)
+                    divide_linear_rev(right[RxComponent::AbA].iter_coeffs(), xz)
                 }
                 StaticFQuery::RightAbBAtX => {
-                    divide_by_root_iter(right[RxComponent::AbB].iter_coeffs(), x)
+                    divide_linear_rev(right[RxComponent::AbB].iter_coeffs(), x)
                 }
                 StaticFQuery::CurrentAAtXz => {
-                    divide_by_root_iter(builder.native_a_poly().iter_coeffs(), xz)
+                    divide_linear_rev(builder.native_a_poly().iter_coeffs(), xz)
                 }
                 StaticFQuery::CurrentBAtX => {
-                    divide_by_root_iter(builder.native_b_poly().iter_coeffs(), x)
+                    divide_linear_rev(builder.native_b_poly().iter_coeffs(), x)
                 }
             })
             .collect();
@@ -188,13 +186,13 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         // into both A(xz) (undilated) and B(x) (Z-dilated).
         for proof in [left, right] {
             for &id in &RxIndex::ALL {
-                iters.push(divide_by_root_iter(proof[id].iter_coeffs(), xz));
+                iters.push(divide_linear_rev(proof[id].iter_coeffs(), xz));
             }
         }
 
         // m(\omega^j, x, y) evaluations for each internal index j
         for &id in &native::InternalCircuitIndex::ALL {
-            iters.push(divide_by_root_iter(
+            iters.push(divide_linear_rev(
                 builder.native_registry_xy_poly().iter_coeffs(),
                 omega_j(id),
             ));

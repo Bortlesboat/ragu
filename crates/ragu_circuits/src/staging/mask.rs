@@ -1,5 +1,5 @@
 use ragu_core::Result;
-use udon::{field::Field, poly::geometric_sum};
+use udon::{field::Field, polynomial::geometric_sum};
 
 use crate::{
     WiringObject,

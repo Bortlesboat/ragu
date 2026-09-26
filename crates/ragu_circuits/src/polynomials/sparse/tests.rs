@@ -230,7 +230,7 @@ proptest! {
     #[test]
     fn eval_matches_dense(poly in arb_any_poly(), x in strategies::prime_field_element::<Fp>()) {
         let dense = poly.to_dense();
-        let expected = udon::poly::evaluate(&dense, x);
+        let expected = udon::polynomial::evaluate(&dense, &x);
         prop_assert_eq!(poly.eval(x), expected);
     }
 
@@ -246,7 +246,7 @@ proptest! {
     fn revdot_matches_dense(a in arb_any_poly(), b in arb_any_poly()) {
         let a_dense = a.to_dense();
         let b_dense = b.to_dense();
-        let expected = udon::field::dot(a_dense.iter(), b_dense.iter().rev());
+        let expected = udon::field::dot_iter(a_dense.iter(), b_dense.iter().rev());
         prop_assert_eq!(a.revdot(&b), expected);
     }
 
@@ -257,7 +257,7 @@ proptest! {
     ) {
         let a_dense = a.to_dense();
         let b_dense = b.to_dense();
-        let expected = udon::field::dot(a_dense.iter(), b_dense.iter().rev());
+        let expected = udon::field::dot_iter(a_dense.iter(), b_dense.iter().rev());
         prop_assert_eq!(a.revdot(&b), expected);
     }
 
@@ -550,7 +550,7 @@ fn only_a_wire_data() {
         expected[2 * n - 1 - i] = *val;
     }
     let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-    assert_eq!(poly.eval(x), udon::poly::evaluate(&expected, x));
+    assert_eq!(poly.eval(x), udon::polynomial::evaluate(&expected, &x));
 }
 
 #[test]
@@ -569,7 +569,7 @@ fn only_d_wire_data() {
         expected[4 * n - 1 - i] = *val;
     }
     let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-    assert_eq!(poly.eval(x), udon::poly::evaluate(&expected, x));
+    assert_eq!(poly.eval(x), udon::polynomial::evaluate(&expected, &x));
 }
 
 #[test]
@@ -604,7 +604,7 @@ fn alloc_optimization_pattern() {
     // Verify eval consistency.
     let dense = poly.to_dense();
     let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-    assert_eq!(poly.eval(x), udon::poly::evaluate(&dense, x));
+    assert_eq!(poly.eval(x), udon::polynomial::evaluate(&dense, &x));
 
     // The d-wire region should be sparse (few non-zero entries).
     // d[i] -> degree 4*n-1-i, so d occupies degrees [3*n, 4*n).

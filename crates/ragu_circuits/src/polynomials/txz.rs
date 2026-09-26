@@ -12,7 +12,7 @@ use ragu_core::{
     routines::{Prediction, Routine},
 };
 use ragu_primitives::{Element, Invertible};
-use udon::{field::Field, poly::geometric_sum};
+use udon::{field::Field, polynomial::geometric_sum};
 
 use super::Rank;
 

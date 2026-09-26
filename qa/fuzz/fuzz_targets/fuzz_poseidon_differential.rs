@@ -67,9 +67,9 @@ impl<'a, P: PoseidonPermutation<Fp>> NativeSponge<'a, P> {
         let rcs = self.params.round_constants();
         let t = P::T;
 
-        for (round_idx, rc) in rcs.enumerate() {
+        for (round_idx, rc) in rcs.iter().enumerate() {
             // Add round constants
-            for (s, c) in self.state.iter_mut().zip(rc.iter()) {
+            for (s, c) in self.state.iter_mut().zip(rc.as_ref().iter()) {
                 *s += c;
             }
 
@@ -93,8 +93,8 @@ impl<'a, P: PoseidonPermutation<Fp>> NativeSponge<'a, P> {
             for s in self.scratch[..t].iter_mut() {
                 *s = Fp::ZERO;
             }
-            for (row_idx, row) in self.params.mds_matrix().enumerate() {
-                for (col_idx, coeff) in row.iter().enumerate() {
+            for (row_idx, row) in self.params.mds_matrix().iter().enumerate() {
+                for (col_idx, coeff) in row.as_ref().iter().enumerate() {
                     self.scratch[row_idx] += *coeff * self.state[col_idx];
                 }
             }

@@ -4,6 +4,7 @@ use ragu_core::{
     Error, Result,
     pasta::{Eq, Fp},
 };
+use udon::curve::Projective;
 
 pub(crate) type PolyQueryClaim = (Eq, Fp, Fp);
 

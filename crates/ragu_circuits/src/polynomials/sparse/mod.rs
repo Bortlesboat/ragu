@@ -52,8 +52,8 @@ use core::{borrow::Borrow, marker::PhantomData};
 use rand::CryptoRng;
 use udon::{
     curve::Affine,
-    fft::reference::{Butterfly, Twiddle},
-    field::{DeferredField, Field},
+    fft::reference::Butterfly,
+    field::{Field, FieldAdapter, PastaField, PrimeModulus},
 };
 
 use super::Rank;
@@ -186,13 +186,10 @@ impl<F: Field, R: Rank> Polynomial<F, R> {
     }
 
     /// Creates a polynomial with random coefficients filling all `4n` slots.
-    pub fn random<RNG: CryptoRng>(rng: &mut RNG) -> Self
-    where
-        F: udon::field::PrimeField,
-    {
+    pub fn random<RNG: CryptoRng>(rng: &mut RNG) -> Self {
         assert!(R::num_coeffs() > 0, "num_coeffs must be positive");
         let coeffs: Vec<F> = (0..R::num_coeffs())
-            .map(|_| udon::field::random::<F>(|bytes| rng.fill_bytes(bytes)))
+            .map(|_| F::random(|bytes| rng.fill_bytes(bytes)))
             .collect();
         Self::from_blocks(alloc::vec![(0, coeffs)])
     }
@@ -418,12 +415,9 @@ impl<F: Field, R: Rank> Polynomial<F, R> {
     ///
     /// Uses a two-pointer merge over both block lists for $O(\text{nnz})$
     /// time. Products are accumulated unreduced via
-    /// [`DeferredField::mul_accumulate`] and a single Montgomery reduction is
+    /// [`Field::mul_accumulate`] and a single Montgomery reduction is
     /// performed at the end.
-    pub fn revdot(&self, other: &Self) -> F
-    where
-        F: DeferredField,
-    {
+    pub fn revdot(&self, other: &Self) -> F {
         let max_deg = R::num_coeffs() - 1;
         let mut acc = F::Accumulator::default();
 
@@ -579,11 +573,11 @@ impl<F: Field> DoubleEndedIterator for CoeffIter<'_, F> {
 impl<F: Field> ExactSizeIterator for CoeffIter<'_, F> {}
 
 /// Polynomials support reference FFTs by scaling, adding, and negating their
-/// coefficients over the transform's twiddle field.
-impl<F: Field + Twiddle, R: Rank> Butterfly<F> for Polynomial<F, R> {
-    fn scaled(&self, twiddle: &F) -> Self {
+/// coefficients. Udon's reference transforms twiddle by native Pasta elements.
+impl<M: PrimeModulus, R: Rank> Butterfly<PastaField<M>> for Polynomial<FieldAdapter<M>, R> {
+    fn scaled(&self, twiddle: &PastaField<M>) -> Self {
         let mut scaled = self.clone();
-        scaled.scale(*twiddle);
+        scaled.scale(FieldAdapter::new(*twiddle));
         scaled
     }
 
@@ -595,7 +589,7 @@ impl<F: Field + Twiddle, R: Rank> Butterfly<F> for Polynomial<F, R> {
 
     fn negated(&self) -> Self {
         let mut negated = self.clone();
-        negated.scale(-<F as Field>::ONE);
+        negated.scale(-FieldAdapter::<M>::ONE);
         negated
     }
 }

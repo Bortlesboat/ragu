@@ -12,6 +12,7 @@ use ragu_circuits::{polynomials::Rank, staging::StageExt};
 use ragu_core::{Cycle, Result, drivers::Driver, maybe::Maybe};
 use ragu_primitives::Element;
 use rand::CryptoRng;
+use udon::field::Field;
 
 use super::RegistryWy;
 use crate::{Application, Proof, internal::native, proof::ProofBuilder};
@@ -67,7 +68,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         };
 
         let rx = native::stages::query::Stage::<C, R, HEADER_SIZE>::rx(
-            udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
+            C::CircuitField::random(|bytes| rng.fill_bytes(bytes)),
             &query_witness,
         )?;
 

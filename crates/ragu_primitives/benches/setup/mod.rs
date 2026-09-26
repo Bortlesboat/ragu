@@ -8,6 +8,7 @@ use ragu_core::{
 };
 use ragu_primitives::{Boolean, Element, Endoscalar, Point, poseidon::Sponge};
 use rand::{Rng, RngExt, SeedableRng, rngs::StdRng};
+use udon::{curve::Affine, field::Field};
 
 pub type BenchEmu = Emulator<Wireless<Always<()>, Fp>>;
 
@@ -53,7 +54,7 @@ pub fn setup_emu<Fns: SetupEmu<T>, T>(fns: Fns) -> (BenchEmu, T) {
 
 // Allocator functions - each takes (emu, rng) and returns an allocated primitive
 pub fn alloc_elem(emu: &mut BenchEmu, rng: &mut StdRng) -> Element<'static, BenchEmu> {
-    let v = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+    let v = Fp::random(|bytes| rng.fill_bytes(bytes));
     Element::alloc(emu, &mut (), BenchEmu::just(|| v)).unwrap()
 }
 
@@ -63,8 +64,8 @@ pub fn alloc_endoscalar_elem(emu: &mut BenchEmu, rng: &mut StdRng) -> Element<'s
 }
 
 pub fn alloc_point(emu: &mut BenchEmu, rng: &mut StdRng) -> Point<'static, BenchEmu, EpAffine> {
-    let s = udon::field::random::<Fq>(|bytes| rng.fill_bytes(bytes));
-    Point::alloc(emu, BenchEmu::just(|| (EpAffine::GENERATOR * s).into())).unwrap()
+    let s = Fq::random(|bytes| rng.fill_bytes(bytes));
+    Point::alloc(emu, BenchEmu::just(|| (EpAffine::generator() * s).into())).unwrap()
 }
 
 pub fn alloc_endo(emu: &mut BenchEmu, rng: &mut StdRng) -> Endoscalar<'static, BenchEmu> {
@@ -86,7 +87,7 @@ pub fn alloc_elems<const N: usize>(
 ) -> Vec<Element<'static, BenchEmu>> {
     (0..N)
         .map(|_| {
-            let v = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let v = Fp::random(|bytes| rng.fill_bytes(bytes));
             Element::alloc(emu, &mut (), BenchEmu::just(|| v)).unwrap()
         })
         .collect()
@@ -106,6 +107,6 @@ pub fn alloc_bools<const N: usize>(
 
 pub fn alloc_coeffs<const N: usize>(_emu: &mut BenchEmu, rng: &mut StdRng) -> Vec<Fp> {
     (0..N)
-        .map(|_| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes)))
+        .map(|_| Fp::random(|bytes| rng.fill_bytes(bytes)))
         .collect()
 }

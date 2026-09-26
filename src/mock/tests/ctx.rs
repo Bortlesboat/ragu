@@ -4,6 +4,7 @@ use ragu_core::{
     Error,
     pasta::{Eq, Fp},
 };
+use udon::{curve::Projective, field::Field};
 
 use super::super::hooks::FrameworkHooks;
 use crate::StepCtx;
@@ -14,12 +15,12 @@ fn enforce_poly_query_rejects_identity() {
     let mut ctx = StepCtx::new(&mut hooks);
 
     assert!(
-        ctx.enforce_poly_query(Eq::GENERATOR, Fp::ONE, Fp::ONE)
+        ctx.enforce_poly_query(Eq::generator(), Fp::ONE, Fp::ONE)
             .is_ok()
     );
 
     let err = ctx
-        .enforce_poly_query(Eq::IDENTITY, Fp::ONE, Fp::ONE)
+        .enforce_poly_query(Eq::identity(), Fp::ONE, Fp::ONE)
         .expect_err("identity commitment must be rejected");
     assert!(matches!(err, Error::InvalidWitness(_)));
     assert!(err.to_string().contains("point at infinity"));
@@ -30,10 +31,10 @@ fn derive_challenge_rejects_identity() {
     let mut hooks = FrameworkHooks::new();
     let mut ctx = StepCtx::new(&mut hooks);
 
-    assert!(ctx.derive_challenge(&[Eq::GENERATOR]).is_ok());
+    assert!(ctx.derive_challenge(&[Eq::generator()]).is_ok());
 
     let err = ctx
-        .derive_challenge(&[Eq::GENERATOR, Eq::IDENTITY])
+        .derive_challenge(&[Eq::generator(), Eq::identity()])
         .expect_err("identity commitment must be rejected");
     assert!(matches!(err, Error::InvalidWitness(_)));
     assert!(err.to_string().contains("point at infinity"));

@@ -1,5 +1,6 @@
 use ragu_core::pasta::{EpAffine, Fp};
 use ragu_primitives::Point;
+use udon::curve::Affine;
 
 use crate::{
     instance::{CircuitInstance, InstanceDriver, WireCollector, WireDeserializer},
@@ -33,7 +34,7 @@ impl CircuitInstance for EndoscalarGroupScaleInstance {
         let point_wires = dr.alloc_input_wires(2);
 
         let endo = endoscalar_from_bits(&bits)?;
-        let point_template = Point::constant(dr, EpAffine::GENERATOR)?;
+        let point_template = Point::constant(dr, EpAffine::generator())?;
         let p = WireDeserializer::new(point_wires).into_gadget(&point_template)?;
 
         let acc = endo.group_scale(dr, &p)?;

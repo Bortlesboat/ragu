@@ -451,12 +451,8 @@ mod tests {
 
         let endoscalar_a: u128 = rand::rng().random();
         let endoscalar_b: u128 = rand::rng().random();
-        let p1 = (EpAffine::GENERATOR
-            * udon::field::random::<Fq>(|bytes| rand::rng().fill_bytes(bytes)))
-        .into();
-        let p2 = (EpAffine::GENERATOR
-            * udon::field::random::<Fq>(|bytes| rand::rng().fill_bytes(bytes)))
-        .into();
+        let p1 = (EpAffine::generator() * Fq::random(|bytes| rand::rng().fill_bytes(bytes))).into();
+        let p2 = (EpAffine::generator() * Fq::random(|bytes| rand::rng().fill_bytes(bytes))).into();
 
         let rx1_a = MyStage1::rx(Fp::ZERO, endoscalar_a)?;
         let rx1_b = MyStage1::rx(Fp::ZERO, endoscalar_b)?;
@@ -465,8 +461,8 @@ mod tests {
         let circ1 = MyStage1::mask()?.into_inner();
         let circ2 = MyStage2::mask()?.into_inner();
 
-        let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let z = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         // sy() now returns -notch; add global_project to recover the full mask.
         let full_sy = |circ: &dyn WiringObject<Fp, R>, y| {
@@ -502,8 +498,8 @@ mod tests {
     fn test_skip_gates_one() {
         let stage_mask = StageMask::<R>::new(1, 5).unwrap();
 
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         // All three return -notch (the global term is factored out by Registry).
         let sxy = stage_mask.sxy(x, y, &[]);
@@ -524,8 +520,8 @@ mod tests {
     fn test_stage_mask_all_gates() {
         // Edge case: skip = 1, num = R::n() - 1, reserved = 0.
         let stage = StageMask::<R>::new(1, R::n() - 1).unwrap();
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         let generic = mask_wiring_object(stage.clone());
         let plan = floor_planner::floor_plan(generic.segment_records());
@@ -568,8 +564,8 @@ mod tests {
         // When reserved = 0, all gates except the SYSTEM gate are active.
         let stage = StageMask::<R>::new(1, R::n() - 1).expect("valid stage mask");
 
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         // All three return -notch (the global term is factored out by Registry).
         let sxy = stage.sxy(x, y, &[]);
@@ -635,8 +631,8 @@ mod tests {
                 Ok(())
             };
 
-            let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-            let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+            let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+            let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
             check(x, y)?;
             check(Fp::ZERO, y)?;
             check(x, Fp::ZERO)?;
@@ -652,12 +648,12 @@ mod tests {
             let mask_a = StageMask::<R>::new(1, split - 1).unwrap();
             let mask_b = StageMask::<R>::new(split, R::n() - split).unwrap();
 
-            let p = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-            let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-            let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+            let p = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+            let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+            let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
             // Polynomial-level: (-notch_a(p) + -notch_b(p)).eval(q) == -global_project(p).eval(q)
-            let q = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+            let q = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
             let mut sum_poly = mask_a.notch_project(p);
             sum_poly += &mask_b.notch_project(p);
             let mut neg_global = super::global_project::<Fp, R>(p);
@@ -747,7 +743,7 @@ mod tests {
         let stage_mask = ConstrainedStage::mask::<'_>().unwrap().into_inner();
 
         // sy() returns -notch; add global_project to recover the full mask.
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
         let mut sy = super::global_project::<Fp, R>(y);
         sy += &stage_mask.sy(y, &[]);
 
@@ -828,8 +824,8 @@ mod tests {
             "MulOnlyRoutine should have 0 constraints"
         );
 
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         // None of these must panic — previously sy would underflow on `- 1`.
         let sxy = circuit.sxy(x, y, &floor_plan);
@@ -1014,7 +1010,7 @@ mod tests {
             ChildOfParentAOnlyStage::rx(Fp::ZERO, challenges).unwrap();
         let poly_commitment: EqAffine = rx.commit_to_affine(generators);
 
-        let mut manual_commitment = EqAffine::IDENTITY;
+        let mut manual_commitment = EqAffine::identity();
         for (i, &challenge) in challenges.iter().enumerate() {
             let idx = <ChildOfParentAOnlyStage as StageExt<Fp, R>>::generator_index_for_a(i);
             let a_gen = generators.g()[idx];
@@ -1040,7 +1036,7 @@ mod tests {
         let poly_commitment: EqAffine = rx.commit_to_affine(generators);
 
         // Manually compute expected commitment using StageExt::generator_index_for_a.
-        let mut manual_commitment = EqAffine::IDENTITY;
+        let mut manual_commitment = EqAffine::identity();
         for (i, &challenge) in challenges.iter().enumerate() {
             let idx = <ParentAOnlyStage as StageExt<Fp, R>>::generator_index_for_a(i);
             let a_gen = generators.g()[idx];

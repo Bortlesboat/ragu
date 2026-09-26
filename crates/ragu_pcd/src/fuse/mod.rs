@@ -3,6 +3,7 @@
 //! Implements the core [`Application::fuse`] operation that takes two child
 //! proofs and produces a new proof, computing each proof component in sequence.
 
+use udon::field::Field;
 mod _01_application;
 mod _02_preamble;
 mod _03_s_prime;
@@ -91,7 +92,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
     ) -> Result<(Pcd<C, R, S::Output>, S::Aux<'source>)> {
         let mut builder = ProofBuilder::<C, R, B>::new(
             self.params,
-            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
+            C::ScalarField::random(|bytes| rng.fill_bytes(bytes)),
         );
 
         let (left, right, application_data, application_aux) =

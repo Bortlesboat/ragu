@@ -17,6 +17,7 @@ use core::ops::AddAssign;
 use ragu_circuits::polynomials::{Rank, sparse};
 use ragu_core::{Cycle, Result};
 use ragu_primitives::{EndoscalarChallenge, lift_endoscalar};
+use udon::field::Field;
 
 use super::{NativeF, NativeFuseEmulator, NativeSPrime, RegistryWy};
 use crate::{
@@ -123,8 +124,8 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         points.push(f.commitment);
         points.extend_from_slice(&commitments);
 
-        let endoscalar_alpha = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
-        let points_alpha = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
+        let endoscalar_alpha = C::ScalarField::random(|bytes| rng.fill_bytes(bytes));
+        let points_alpha = C::ScalarField::random(|bytes| rng.fill_bytes(bytes));
         let p_commitment = self.compute_endoscaling(
             rng,
             beta_endo,

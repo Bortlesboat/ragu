@@ -78,7 +78,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &mut ProofBuilder<'_, C, R, B>,
     ) -> Result<()> {
         let bridge_rx = nested::stages::f::Stage::<C::HostCurve, R>::rx(
-            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
+            C::ScalarField::random(|bytes| rng.fill_bytes(bytes)),
             &nested::stages::f::Witness {
                 native_f: native.commitment,
             },

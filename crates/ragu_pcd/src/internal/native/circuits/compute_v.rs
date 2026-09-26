@@ -293,10 +293,7 @@ impl<'dr, D: Driver<'dr>> Denominators<'dr, D> {
         y: &Element<'dr, D>,
         z: &Element<'dr, D>,
         preamble: &native_preamble::Output<'dr, D, C, HEADER_SIZE>,
-    ) -> Result<Self>
-    where
-        D::F: udon::field::FftField,
-    {
+    ) -> Result<Self> {
         let xz = x.mul(dr, z)?;
 
         let mut inverter = Inverter::with_base(u.clone());
@@ -682,7 +679,7 @@ struct Inverter<'dr, D: Driver<'dr>> {
     differences: Vec<Element<'dr, D>>,
 }
 
-impl<'dr, D: Driver<'dr, F: udon::field::FftField>> Inverter<'dr, D> {
+impl<'dr, D: Driver<'dr>> Inverter<'dr, D> {
     /// Creates a batch inverter with the provided base [`Element`].
     ///
     /// The base represents a fixed evaluation point (e.g., $u$ or $y$

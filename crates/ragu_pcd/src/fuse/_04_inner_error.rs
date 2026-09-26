@@ -11,6 +11,7 @@ use ragu_circuits::{polynomials::Rank, registry::RegistryAt, staging::StageExt};
 use ragu_core::{Cycle, Result, drivers::Driver, maybe::Maybe};
 use ragu_primitives::Element;
 use rand::CryptoRng;
+use udon::field::Field;
 
 use super::{
     RegistryWy,
@@ -54,7 +55,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &mut ProofBuilder<'_, C, R, B>,
     ) -> Result<()> {
         let bridge_rx = nested::stages::inner_error::Stage::<C::HostCurve, R>::rx(
-            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
+            C::ScalarField::random(|bytes| rng.fill_bytes(bytes)),
             &nested::stages::inner_error::Witness {
                 native_inner_error: builder.native_inner_error_commitment(),
                 registry_wy: registry_wy.commitment,
@@ -100,7 +101,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
             };
         let native_rx =
             native::stages::inner_error::Stage::<C, R, HEADER_SIZE, native::RevdotParameters>::rx(
-                udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
+                C::CircuitField::random(|bytes| rng.fill_bytes(bytes)),
                 &inner_error_witness,
             )?;
 

@@ -15,7 +15,7 @@ use ragu_core::{
 };
 use ragu_primitives::{Element, Simulator, allocator::Standard};
 use rand::Rng;
-use udon::field::PrimeField as Field;
+use udon::field::Field;
 
 use crate::{
     Circuit, CircuitExt, WiringObject, WithAux, floor_planner, into_wiring_object,
@@ -91,8 +91,8 @@ impl Circuit<Fp> for ManyLinearCircuit {
 }
 
 fn consistency_checks<R: Rank>(obj: &dyn WiringObject<Fp, R>) {
-    let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-    let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+    let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+    let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
     let plan = floor_planner::floor_plan(obj.segment_records());
 
     let sxy_eval = obj.sxy(x, y, &plan);
@@ -192,8 +192,8 @@ fn test_simple_circuit() {
 
     consistency_checks::<MyRank>(&*obj);
 
-    let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-    let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+    let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+    let z = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
     let a = assignment.clone();
     let mut b = assignment.clone();

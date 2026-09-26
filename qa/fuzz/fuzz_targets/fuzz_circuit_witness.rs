@@ -109,7 +109,7 @@ use ragu_testing_fuzz::substrate::{
 };
 use udon::{
     curve::{Affine, Projective},
-    field::FftField,
+    field::Field,
 };
 
 #[derive(Arbitrary, Debug)]
@@ -649,7 +649,7 @@ fuzz_target!(|input: Input| {
             if scalar_seed == 0 {
                 return;
             }
-            let base = (EpAffine::GENERATOR * Fq::from(scalar_seed)).to_affine();
+            let base = (EpAffine::generator() * Fq::from(scalar_seed)).to_affine();
             let registry = POINT_REGISTRY
                 .as_ref()
                 .expect("PointCircuit registry construction failed");

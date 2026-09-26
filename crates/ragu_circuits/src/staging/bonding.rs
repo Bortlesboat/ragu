@@ -26,7 +26,7 @@ use ragu_core::{
     drivers::{Driver, DriverTypes, LinearExpression},
     maybe::Empty,
 };
-use udon::field::{DeferredField, FftField, Field};
+use udon::field::Field;
 
 use super::{MultiStage, MultiStageCircuit, StageBuilder};
 use crate::{
@@ -38,7 +38,7 @@ use crate::{
 
 impl<F, R, S> MultiStage<F, R, S>
 where
-    F: FftField,
+    F: Field,
     R: Rank,
     S: MultiStageCircuit<F, R>,
 {
@@ -80,7 +80,6 @@ where
     pub fn into_bonding_object<'a>(self) -> Result<BondingObject<'a, F, R>>
     where
         Self: 'a,
-        F: DeferredField,
         S: MultiStageCircuit<F, R, Output = ()>,
     {
         // Validate: run constraint emission with a driver that rejects ONE usage
@@ -239,18 +238,12 @@ impl<'a, F: Field, R: Rank> Stripped<'a, F, R> {
 }
 
 impl<F: Field, R: Rank> WiringObject<F, R> for Stripped<'_, F, R> {
-    fn sxy(&self, x: F, y: F, floor_plan: &[ConstraintSegment]) -> F
-    where
-        F: DeferredField,
-    {
+    fn sxy(&self, x: F, y: F, floor_plan: &[ConstraintSegment]) -> F {
         // Remove the ONE wire contribution: 1 at y^0 (d[0] maps to degree 0).
         self.0.sxy(x, y, floor_plan) - F::ONE
     }
 
-    fn sx(&self, x: F, floor_plan: &[ConstraintSegment]) -> sparse::Polynomial<F, R>
-    where
-        F: DeferredField,
-    {
+    fn sx(&self, x: F, floor_plan: &[ConstraintSegment]) -> sparse::Polynomial<F, R> {
         let mut poly = self.0.sx(x, floor_plan);
         // Horner places the last constraint (enforce_one) at y^0 = coeffs[0].
         // TODO: sparse::Polynomial should support subtracting a field element
@@ -601,8 +594,8 @@ mod tests {
         let obj = bonding_obj();
         let floor_plan = floor_planner::floor_plan(obj.segment_records());
 
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         // s(0, y) = 0: no constraint on d_0 wires.
         assert_eq!(obj.sxy(Fp::ZERO, y, &floor_plan), Fp::ZERO);
@@ -616,8 +609,8 @@ mod tests {
         let obj = bonding_obj();
         let floor_plan = floor_planner::floor_plan(obj.segment_records());
 
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         let sxy = obj.sxy(x, y, &floor_plan);
         assert_eq!(sxy, obj.sx(x, &floor_plan).eval(y));
@@ -649,11 +642,11 @@ mod tests {
         let obj = bonding_obj();
         let floor_plan = floor_planner::floor_plan(obj.segment_records());
 
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
         let sy = obj.sy(y, &floor_plan);
 
-        let v = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let w = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let v = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let w = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         let rx_equal = build_trace(&[(v, v)]);
         assert_eq!(rx_equal.revdot(&sy), Fp::ZERO);
@@ -671,8 +664,8 @@ mod tests {
             .unwrap()
             .into_inner();
         let floor_plan = floor_planner::floor_plan(obj.segment_records());
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
         assert_eq!(obj.sxy(Fp::ZERO, y, &floor_plan), Fp::ZERO);
         assert_eq!(obj.sxy(x, Fp::ZERO, &floor_plan), Fp::ZERO);
@@ -682,8 +675,8 @@ mod tests {
         assert_eq!(sxy, obj.sy(y, &floor_plan).eval(x));
 
         let rx = build_trace(&[(
-            udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-            udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
+            Fp::random(|bytes| rand::rng().fill_bytes(bytes)),
+            Fp::random(|bytes| rand::rng().fill_bytes(bytes)),
         )]);
         assert_eq!(rx.revdot(&obj.sy(y, &floor_plan)), Fp::ZERO);
     }

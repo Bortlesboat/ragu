@@ -100,7 +100,7 @@ impl<C: Cycle, R: Rank, H: Header<C::CircuitField>> Clone for Pcd<C, R, H> {
 /// Stage rx polynomials from a child proof, stored so the verifier can
 /// check copying circuit claims.
 #[derive(Clone)]
-pub(crate) struct ChildStageRx<F: udon::field::FftField, R: Rank> {
+pub(crate) struct ChildStageRx<F: Field, R: Rank> {
     pub points_stage: Arc<sparse::Polynomial<F, R>>,
     pub bridge_s_prime: Arc<sparse::Polynomial<F, R>>,
     pub bridge_inner_error: Arc<sparse::Polynomial<F, R>>,
@@ -110,7 +110,7 @@ pub(crate) struct ChildStageRx<F: udon::field::FftField, R: Rank> {
     pub bridge_eval: Arc<sparse::Polynomial<F, R>>,
 }
 
-impl<F: udon::field::FftField, R: Rank> ChildStageRx<F, R> {
+impl<F: Field, R: Rank> ChildStageRx<F, R> {
     /// Dispatch to the bridge-stage rx polynomial named by `kind`.
     pub(crate) fn bridge_at(&self, kind: ChildBridgeKind) -> &sparse::Polynomial<F, R> {
         match kind {

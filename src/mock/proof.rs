@@ -6,7 +6,7 @@ use ragu_core::{
 };
 use udon::{
     curve::{Affine as _, Projective},
-    field::PrimeField as Field,
+    field::Field,
 };
 
 use super::{

@@ -118,6 +118,7 @@ impl<F: Field> core::ops::Add for Coeff<F> {
 
 #[cfg(test)]
 mod tests {
+    use udon::field::Field;
 
     use super::Coeff;
     use crate::pasta::Fp;

@@ -53,6 +53,7 @@ use libfuzzer_sys::fuzz_target;
 use ragu_core::{maybe::Maybe, pasta::Fp};
 use ragu_primitives::{Simulator, allocator::Standard};
 use ragu_testing_fuzz::substrate::{Capabilities, Limits, OpSet, Program, synthesize};
+use udon::field::Field;
 
 /// Hash the final witness state into a single u64.
 ///

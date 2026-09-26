@@ -40,7 +40,7 @@ use arbitrary::Arbitrary;
 use libfuzzer_sys::fuzz_target;
 use ragu_core::{maybe::Maybe, pasta::Fp};
 use ragu_primitives::{Boolean, Element, Simulator, allocator::Standard};
-use udon::field::FftField;
+use udon::field::Field;
 
 #[derive(Arbitrary, Debug)]
 struct Input {

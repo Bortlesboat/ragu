@@ -129,8 +129,8 @@ mod tests {
         // ProductionRank (R<13>) has log2_n = 11
         type TestRank = ProductionRank;
 
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let z = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
         let evaluator = Evaluate::<TestRank>::new();
 
         Simulator::simulate((x, z), |dr, witness| {

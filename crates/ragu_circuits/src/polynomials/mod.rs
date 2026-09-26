@@ -163,7 +163,7 @@ mod tests {
             view.b.push(Fp::ONE);
         }
         let mut poly = view.build();
-        let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let z = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
         poly.dilate(z);
         poly.negate();
         let poly_dense = poly.to_dense();
@@ -184,8 +184,8 @@ mod tests {
     #[test]
     fn test_txz_consistency() {
         type DemoR = TestRank;
-        let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
-        let x = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+        let z = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
+        let x = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
         let txz = DemoR::txz(x, z);
         let tx0 = DemoR::txz(x, Fp::ZERO);
         let t0z: Fp = DemoR::txz(Fp::ZERO, z);

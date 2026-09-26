@@ -1,4 +1,4 @@
-use udon::field::{DeferredField, Field};
+use udon::field::Field;
 
 use super::Coeff;
 
@@ -60,7 +60,7 @@ impl<W: Clone, F: Field> LinearExpression<W, F> for () {
 ///
 /// Zero, unit, and doubled coefficients keep their cheap field operations.
 /// Other coefficients share a deferred accumulator, reduced by [`Self::value`].
-pub struct DirectSum<F: DeferredField> {
+pub struct DirectSum<F: Field> {
     /// The sum of terms handled without field multiplication.
     value: F,
 
@@ -71,7 +71,7 @@ pub struct DirectSum<F: DeferredField> {
     current_gain: Coeff<F>,
 }
 
-impl<F: DeferredField> DirectSum<F> {
+impl<F: Field> DirectSum<F> {
     /// Consumes the linear expression, reducing its accumulated products.
     pub fn value(self) -> F {
         match self.products {
@@ -87,7 +87,7 @@ impl<F: DeferredField> DirectSum<F> {
     }
 }
 
-impl<F: DeferredField> Default for DirectSum<F> {
+impl<F: Field> Default for DirectSum<F> {
     fn default() -> Self {
         Self {
             value: F::ZERO,
@@ -97,7 +97,7 @@ impl<F: DeferredField> Default for DirectSum<F> {
     }
 }
 
-impl<F: DeferredField> LinearExpression<F, F> for DirectSum<F> {
+impl<F: Field> LinearExpression<F, F> for DirectSum<F> {
     fn add_term(mut self, wire: &F, coeff: Coeff<F>) -> Self {
         match coeff * self.current_gain {
             Coeff::Zero => {}
@@ -131,7 +131,7 @@ mod tests {
 
     use proptest::prelude::*;
     use ragu_testing::strategies;
-    use udon::field::FftField;
+    use udon::field::Field;
 
     use super::*;
     use crate::pasta::{Fp, Fq};
@@ -509,7 +509,7 @@ mod tests {
 
     /// Every coefficient variant, over this crate's own [`Coeff`]: the shared
     /// strategy in `ragu_testing` yields the dev-dependency's copy of the type.
-    fn arb_coeff<F: FftField>() -> impl Strategy<Value = Coeff<F>> {
+    fn arb_coeff<F: Field>() -> impl Strategy<Value = Coeff<F>> {
         prop_oneof![
             Just(Coeff::Zero),
             Just(Coeff::One),
@@ -520,7 +520,7 @@ mod tests {
         ]
     }
 
-    fn arb_op<F: FftField>() -> impl Strategy<Value = Op<F>> {
+    fn arb_op<F: Field>() -> impl Strategy<Value = Op<F>> {
         prop_oneof![
             (strategies::prime_field_element::<F>(), arb_coeff::<F>())
                 .prop_map(|(w, c)| Op::AddTerm(w, c)),
@@ -528,7 +528,7 @@ mod tests {
         ]
     }
 
-    fn check_direct_sum<F: DeferredField>(ops: Vec<Op<F>>) -> (F, F) {
+    fn check_direct_sum<F: Field>(ops: Vec<Op<F>>) -> (F, F) {
         let mut ds = DirectSum::<F>::default();
         let mut manual_value = F::ZERO;
         let mut manual_gain = F::ONE;

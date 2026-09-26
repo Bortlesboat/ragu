@@ -54,7 +54,7 @@ use ragu_core::{
     maybe::Empty,
     routines::Routine,
 };
-use udon::field::{DeferredField, FftField};
+use udon::field::Field;
 
 use super::{Circuit, raw::RawCircuit};
 
@@ -100,11 +100,16 @@ pub struct BaseFingerprint {
 }
 
 impl BaseFingerprint {
-    fn new<F: FftField>(eval: F, num_gates: usize, num_constraints: usize) -> Self {
+    fn new<F: Field>(eval: F, num_gates: usize, num_constraints: usize) -> Self {
+        // The low 64 bits of the canonical little-endian encoding.
+        let mut low = [0u8; 8];
+        for (dst, src) in low.iter_mut().zip(eval.to_bytes().as_ref()) {
+            *dst = *src;
+        }
         Self {
             num_gates,
             num_constraints,
-            eval: udon::field::low_u64(&eval),
+            eval: u64::from_le_bytes(low),
         }
     }
 
@@ -166,7 +171,7 @@ impl DeepFingerprint {
     /// permutations that leave the output gadget tuple-equal. The stored
     /// `deep` is the first 8 bytes of the BLAKE2b digest interpreted as a
     /// little-endian `u64`.
-    fn new<F: FftField, Ro: Routine<F>>(
+    fn new<F: Field, Ro: Routine<F>>(
         base: BaseFingerprint,
         output_wires: &[F],
         children: &[u64],
@@ -369,7 +374,7 @@ impl<F: Copy + core::ops::MulAssign> ReinitWires<F> {
 /// [`WireMap`] for `Counter`→`Counter`: every source wire is replaced by a
 /// fresh value from this `ReinitWires` sequence. No gates are allocated and
 /// no constraint counts change.
-impl<F: FftField + DeferredField> WireMap<F> for ReinitWires<F> {
+impl<F: Field> WireMap<F> for ReinitWires<F> {
     type Src = Counter<F>;
     type Dst = Counter<F>;
 
@@ -422,7 +427,7 @@ struct Counter<F> {
     y: F,
 }
 
-impl<F: FftField> Counter<F> {
+impl<F: Field> Counter<F> {
     fn new() -> Self {
         let base_state = blake2b_simd::Params::new()
             .personal(b"ragu_counter____")
@@ -466,7 +471,7 @@ impl<F: FftField> Counter<F> {
     }
 }
 
-impl<F: FftField + DeferredField> DriverTypes for Counter<F> {
+impl<F: Field> DriverTypes for Counter<F> {
     type MaybeKind = Empty;
     type ImplField = F;
     type ImplWire = F;
@@ -502,7 +507,7 @@ impl<F: FftField + DeferredField> DriverTypes for Counter<F> {
     }
 }
 
-impl<'dr, F: FftField + DeferredField> Driver<'dr> for Counter<F> {
+impl<'dr, F: Field> Driver<'dr> for Counter<F> {
     type F = F;
     type Wire = F;
     const ONE: Self::Wire = F::ONE;
@@ -600,14 +605,12 @@ impl<'dr, F: FftField + DeferredField> Driver<'dr> for Counter<F> {
 ///
 /// Propagates any error from the raw orchestration pass used to analyze the
 /// circuit.
-pub fn eval<F: FftField + DeferredField, C: Circuit<F>>(circuit: &C) -> Result<CircuitMetrics> {
+pub fn eval<F: Field, C: Circuit<F>>(circuit: &C) -> Result<CircuitMetrics> {
     eval_raw(&super::raw::CircuitAdapterRef(circuit))
 }
 
 /// Evaluates the constraint topology of a [`RawCircuit`].
-pub(crate) fn eval_raw<F: FftField + DeferredField, RC: RawCircuit<F>>(
-    circuit: &RC,
-) -> Result<CircuitMetrics> {
+pub(crate) fn eval_raw<F: Field, RC: RawCircuit<F>>(circuit: &RC) -> Result<CircuitMetrics> {
     let mut collector = Counter::<F>::new();
 
     let result = super::raw::orchestrate(&mut collector, circuit, Empty)?;
@@ -662,9 +665,7 @@ pub(crate) mod tests {
         _marker: PhantomData<Src>,
     }
 
-    impl<F: FftField + DeferredField, Src: DriverTypes<ImplField = F>> WireMap<F>
-        for CounterRemap<'_, F, Src>
-    {
+    impl<F: Field, Src: DriverTypes<ImplField = F>> WireMap<F> for CounterRemap<'_, F, Src> {
         type Src = Src;
         type Dst = Counter<F>;
 
@@ -690,7 +691,7 @@ pub(crate) mod tests {
         input: &Bound<'dr, D, Ro::Input>,
     ) -> Result<RoutineIdentity>
     where
-        F: FftField + DeferredField,
+        F: Field,
         D: Driver<'dr, F = F>,
         Ro: Routine<F>,
     {

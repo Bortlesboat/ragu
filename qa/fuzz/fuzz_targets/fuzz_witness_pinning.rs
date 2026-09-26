@@ -77,6 +77,7 @@ use ragu_core::pasta::Fp;
 use ragu_testing_fuzz::substrate::{
     Capabilities, Limits, Op, OpSet, Overrides, Preamble, Program, ProgramCircuit, shadow_eval,
 };
+use udon::field::Field;
 
 #[derive(Arbitrary, Debug)]
 struct Input {

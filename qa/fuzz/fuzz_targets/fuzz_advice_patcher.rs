@@ -156,7 +156,7 @@ use ragu_testing_fuzz::substrate::{
     AdviceSlot, Limits, OpKind, OpSet, Overrides, Program, anchor_tail, native_satisfied,
     shadow_eval, special_value, synthesize,
 };
-use udon::field::FftField;
+use udon::field::Field;
 
 /// Vacuity telemetry (`PATCHER_STATS=1`): a run is *vacuous* when no oracle
 /// observed its cheat — it bailed on an out-of-model control flip, or both
@@ -223,7 +223,7 @@ struct Cheat {
 /// Assembles a full-width field element from 32 LE bytes as four `u64`
 /// limbs `Σ limbᵢ · 2⁶⁴ⁱ`, covering `[0, 2²⁵⁶) mod p` — deltas the `u64`
 /// mutation can never reach. Generic over the field for dual-field runs.
-fn wide_value<F: FftField>(bytes: &[u8; 32]) -> F {
+fn wide_value<F: Field>(bytes: &[u8; 32]) -> F {
     let two64 = F::from(u64::MAX) + F::ONE; // 2⁶⁴
     let mut acc = F::ZERO;
     for chunk in bytes.chunks(8).rev() {
@@ -259,7 +259,7 @@ struct Input {
 /// an index wins, including the second leg of a swap), and every result is
 /// nudged off the honest value so each cheat does real work. Shared by the
 /// element- and fold-advice paths.
-fn resolve_cheats<F: FftField>(cheats: &[Cheat], honest: &[F]) -> Vec<(usize, F)> {
+fn resolve_cheats<F: Field>(cheats: &[Cheat], honest: &[F]) -> Vec<(usize, F)> {
     let n = honest.len();
     let mut out: Vec<(usize, F)> = Vec::new();
     if n == 0 {
@@ -358,7 +358,7 @@ fuzz_target!(|input: Input| {
 });
 
 /// One field's worth of the patcher differential over the decoded `program`.
-fn patch_round<F: FftField>(input: &Input, decoded: &Program) {
+fn patch_round<F: Field>(input: &Input, decoded: &Program) {
     // Maximize observability: anchor every derived slot the honest run
     // leaves live, so a cheat that propagates anywhere is observed by some
     // anchor (advice slots stay unanchored — see `anchor_tail`).

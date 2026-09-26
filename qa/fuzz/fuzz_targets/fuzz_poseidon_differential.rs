@@ -17,7 +17,7 @@ use ragu_core::{
     pasta::{Fp, Pasta},
 };
 use ragu_primitives::{Element, Simulator, allocator::Standard, poseidon::Sponge};
-use udon::field::FftField;
+use udon::field::Field;
 
 fn special_value(idx: u8) -> Fp {
     match idx % 16 {

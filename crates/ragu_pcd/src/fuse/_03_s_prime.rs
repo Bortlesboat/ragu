@@ -6,7 +6,7 @@
 use ragu_circuits::{polynomials::Rank, registry::RegistryAt, staging::StageExt};
 use ragu_core::{Cycle, Result};
 use rand::CryptoRng;
-use udon::curve::Affine;
+use udon::{curve::Affine, field::Field};
 
 use super::NativeSPrime;
 use crate::{Application, Proof, internal::nested, proof::ProofBuilder};
@@ -34,7 +34,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &mut ProofBuilder<'_, C, R, B>,
     ) -> Result<()> {
         let bridge_rx = nested::stages::s_prime::Stage::<C::HostCurve, R>::rx(
-            udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes)),
+            C::ScalarField::random(|bytes| rng.fill_bytes(bytes)),
             &nested::stages::s_prime::Witness {
                 registry_wx0: native.registry_wx0_commitment,
                 registry_wx1: native.registry_wx1_commitment,

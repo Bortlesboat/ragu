@@ -122,7 +122,7 @@ use ragu_testing_fuzz::{
     source_shape::analyze_source_shape,
 };
 use rand::{SeedableRng, rngs::StdRng};
-use udon::field::FftField;
+use udon::field::Field;
 
 type NativeField = <Pasta as Cycle>::CircuitField;
 type NestedField = <Pasta as Cycle>::ScalarField;
@@ -269,7 +269,7 @@ impl<F> Captured<F> {
 
 /// Captures one circuit, checks its spec statically, and classifies its
 /// wires.
-fn collect<'w, F: FftField, Cir: Circuit<F>>(
+fn collect<'w, F: Field, Cir: Circuit<F>>(
     point: Point,
     spec: &CircuitSpec,
     circuit: &Cir,
@@ -585,7 +585,7 @@ fuzz_target!(
 
 /// One fuzz iteration: resolve the cheats onto the captured circuit and
 /// probe.
-fn probe<F: FftField>(circuit: &Captured<F>, input: &Input, replay: impl Fn(&[F]) -> Option<bool>) {
+fn probe<F: Field>(circuit: &Captured<F>, input: &Input, replay: impl Fn(&[F]) -> Option<bool>) {
     if circuit.cheatable.is_empty() {
         return;
     }

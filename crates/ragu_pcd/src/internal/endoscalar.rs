@@ -33,10 +33,7 @@ use ragu_primitives::{
     Endoscalar, GadgetExt, NonzeroBank, Point,
     vec::{FixedVec, Len},
 };
-use udon::{
-    curve::EndomorphismAffine as Affine,
-    field::{FftField, Field},
-};
+use udon::{curve::EndomorphismAffine as Affine, field::Field};
 
 /// Number of endoscaling operations per step. This is how many we can fit into
 /// a single circuit in our target circuit size.
@@ -108,10 +105,7 @@ pub struct PointsWitness<C: Affine, const NUM_POINTS: usize> {
     pub interstitials: FixedVec<C, NumStepsLen<NUM_POINTS>>,
 }
 
-impl<C: Affine, const NUM_POINTS: usize> PointsWitness<C, NUM_POINTS>
-where
-    C::Scalar: FftField,
-{
+impl<C: Affine, const NUM_POINTS: usize> PointsWitness<C, NUM_POINTS> {
     /// Creates a new `PointsWitness` from points and an endoscalar.
     ///
     /// The first point becomes `initial`, remaining points become `inputs`,
@@ -257,7 +251,7 @@ pub struct EndoscalingStepWitness<'source, C: Affine, const NUM_POINTS: usize> {
     pub points: &'source PointsWitness<C, NUM_POINTS>,
 }
 
-impl<C: Affine<Base: FftField>, R: Rank, const NUM_POINTS: usize> MultiStageCircuit<C::Base, R>
+impl<C: Affine, R: Rank, const NUM_POINTS: usize> MultiStageCircuit<C::Base, R>
     for EndoscalingStep<C, R, NUM_POINTS>
 {
     type Last = PointsStage<C, NUM_POINTS>;
@@ -340,7 +334,10 @@ mod tests {
     use ragu_primitives::{Endoscalar, vec::Len};
     use ragu_testing::registry::TestRegistryBuilder;
     use rand::{Rng, RngExt};
-    use udon::curve::Projective;
+    use udon::{
+        curve::{Affine, Projective},
+        field::Field,
+    };
 
     use super::{
         ENDOSCALINGS_PER_STEP, EndoscalarStage, EndoscalingStep, EndoscalingStepWitness, InputsLen,
@@ -423,10 +420,8 @@ mod tests {
         // Generate random endoscalar and base input points.
         let endoscalar: u128 = rand::rng().random();
         let base_inputs: [EpAffine; NUM_POINTS] = core::array::from_fn(|_| {
-            (Ep::GENERATOR
-                * udon::field::random::<<Ep as Projective>::Scalar>(|bytes| {
-                    rand::rng().fill_bytes(bytes)
-                }))
+            (Ep::generator()
+                * <Ep as Projective>::Scalar::random(|bytes| rand::rng().fill_bytes(bytes)))
             .to_affine()
         });
 
@@ -463,7 +458,7 @@ mod tests {
                 .into_output();
             let final_rx = registry.assemble(&final_trace, staged_h, Fp::ZERO)?;
 
-            let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+            let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
             // Verify revdot identities for each stage.
             assert_eq!(endoscalar_rx.revdot(&registry.y(endo_mask_h, y)), Fp::ZERO);
@@ -498,10 +493,8 @@ mod tests {
         // Generate random endoscalar and base input points.
         let endoscalar: u128 = rand::rng().random();
         let base_inputs: [EpAffine; NUM_POINTS] = core::array::from_fn(|_| {
-            (Ep::GENERATOR
-                * udon::field::random::<<Ep as Projective>::Scalar>(|bytes| {
-                    rand::rng().fill_bytes(bytes)
-                }))
+            (Ep::generator()
+                * <Ep as Projective>::Scalar::random(|bytes| rand::rng().fill_bytes(bytes)))
             .to_affine()
         });
 
@@ -534,7 +527,7 @@ mod tests {
                 .into_output();
             let final_rx = registry.assemble(&final_trace, staged_h, Fp::ZERO)?;
 
-            let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+            let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 
             let endoscalar_rx = <EndoscalarStage as StageExt<Fp, R>>::rx(Fp::ZERO, endoscalar)?;
             let points_rx =
@@ -644,10 +637,8 @@ mod tests {
         fn check<const NUM_POINTS: usize>() {
             let endoscalar: u128 = rand::rng().random();
             let base_inputs: [EpAffine; NUM_POINTS] = core::array::from_fn(|_| {
-                (Ep::GENERATOR
-                    * udon::field::random::<<Ep as Projective>::Scalar>(|bytes| {
-                        rand::rng().fill_bytes(bytes)
-                    }))
+                (Ep::generator()
+                    * <Ep as Projective>::Scalar::random(|bytes| rand::rng().fill_bytes(bytes)))
                 .to_affine()
             });
 

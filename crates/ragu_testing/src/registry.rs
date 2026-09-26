@@ -14,7 +14,7 @@ use ragu_circuits::{
     registry::{CircuitIndex, Registry, RegistryBuilder},
 };
 use ragu_core::Result;
-use udon::field::{DeferredField, FftField};
+use udon::field::Field;
 
 /// Opaque handle to an entry registered in a [`TestRegistryBuilder`].
 #[derive(Clone, Copy)]
@@ -34,19 +34,19 @@ impl Handle {
 /// [`CircuitIndex`] values, so that tests do not depend on the order in
 /// which circuit and bonding-object categories are concatenated into the
 /// final index space.
-pub struct TestRegistryBuilder<'p, F: FftField + DeferredField, R: Rank> {
+pub struct TestRegistryBuilder<'p, F: Field, R: Rank> {
     inner: Option<RegistryBuilder<'p, F, R>>,
     num_circuits: usize,
     num_bonding: usize,
 }
 
-impl<'p, F: FftField + DeferredField, R: Rank> Default for TestRegistryBuilder<'p, F, R> {
+impl<'p, F: Field, R: Rank> Default for TestRegistryBuilder<'p, F, R> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'p, F: FftField + DeferredField, R: Rank> TestRegistryBuilder<'p, F, R> {
+impl<'p, F: Field, R: Rank> TestRegistryBuilder<'p, F, R> {
     /// Creates a new empty builder.
     pub fn new() -> Self {
         Self {
@@ -97,11 +97,11 @@ impl<'p, F: FftField + DeferredField, R: Rank> TestRegistryBuilder<'p, F, R> {
 
 /// A finalized registry wrapper that maps opaque handles to the correct
 /// [`CircuitIndex`] for each registry operation.
-pub struct TestRegistry<'p, F: FftField + DeferredField, R: Rank> {
+pub struct TestRegistry<'p, F: Field, R: Rank> {
     inner: Registry<'p, F, R>,
 }
 
-impl<F: FftField + DeferredField, R: Rank> TestRegistry<'_, F, R> {
+impl<F: Field, R: Rank> TestRegistry<'_, F, R> {
     /// Assembles a [`Trace`] into a polynomial for the entry identified
     /// by `handle`, using the registry's key and floor plan. `alpha` is
     /// written to `a[0]` of the resulting polynomial; pass a random field

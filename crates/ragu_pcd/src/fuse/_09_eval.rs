@@ -11,6 +11,7 @@ use ragu_circuits::{
 use ragu_core::{Cycle, Result, drivers::Driver, maybe::Maybe};
 use ragu_primitives::Element;
 use rand::CryptoRng;
+use udon::field::Field;
 
 use super::{NativeSPrime, RegistryWy};
 use crate::{Application, Proof, internal::native, proof::ProofBuilder};
@@ -65,7 +66,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         builder: &ProofBuilder<'_, C, R, B>,
     ) -> Result<(sparse::Polynomial<C::CircuitField, R>, C::NestedCurve)> {
         let eval_rx = native::stages::eval::Stage::<C, R, HEADER_SIZE>::rx(
-            udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
+            C::CircuitField::random(|bytes| rng.fill_bytes(bytes)),
             eval_witness,
         )?;
         let native_eval_commitment =

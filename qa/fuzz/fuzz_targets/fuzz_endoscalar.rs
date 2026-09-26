@@ -25,7 +25,7 @@ use ragu_primitives::{
 };
 use udon::{
     curve::{Affine, Projective},
-    field::FftField,
+    field::Field,
 };
 
 /// Edge-case field elements that trigger boundary conditions.
@@ -46,7 +46,7 @@ fn special_scalar(idx: u8) -> Fp {
 
 /// Precomputed table of non-identity Pallas points.
 ///
-/// The native scalar mul `EpAffine::GENERATOR * Fq::from(seed)` runs
+/// The native scalar mul `EpAffine::generator() * Fq::from(seed)` runs
 /// twice per input (for `p` and `p2`), ~50µs each. Endo/group_scale
 /// gadget paths are point-shape independent — they exercise the same
 /// window pattern for any on-curve point — so collapsing the u64 seed
@@ -56,10 +56,10 @@ fn special_scalar(idx: u8) -> Fp {
 /// cannot precompute (depends on the fuzzer-chosen scalar).
 const POINT_TABLE_LEN: usize = 64;
 static POINT_TABLE: LazyLock<[EpAffine; POINT_TABLE_LEN]> = LazyLock::new(|| {
-    let mut points = [EpAffine::GENERATOR; POINT_TABLE_LEN];
+    let mut points = [EpAffine::generator(); POINT_TABLE_LEN];
     for (i, p) in points.iter_mut().enumerate() {
         if i > 0 {
-            *p = (EpAffine::GENERATOR * Fq::from(i as u64)).to_affine();
+            *p = (EpAffine::generator() * Fq::from(i as u64)).to_affine();
         }
     }
     points

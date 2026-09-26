@@ -19,7 +19,7 @@ use ragu_circuits::{
 };
 use ragu_core::{Result, drivers::Driver};
 use ragu_primitives::Element;
-use udon::field::{DeferredField, FftField};
+use udon::field::Field;
 
 use super::{InternalCircuitIndex, RxComponent, RxIndex};
 use crate::internal::claims::{Builder, Source, sum_polynomials};
@@ -99,7 +99,7 @@ pub trait Processor<Rx, AppCircuitId> {
     ) -> Result<()>;
 }
 
-impl<'m, 'rx, F: FftField + DeferredField, R: Rank, B: ragu_backend::Backend>
+impl<'m, 'rx, F: Field, R: Rank, B: ragu_backend::Backend>
     Processor<&'rx sparse::Polynomial<F, R>, CircuitIndex>
     for Builder<'m, 'rx, Cow<'rx, sparse::Polynomial<F, R>>, F, R, B>
 {

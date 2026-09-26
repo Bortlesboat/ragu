@@ -17,7 +17,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::{Boolean, Element, allocator::Allocator};
-use udon::field::{FftField, Field as _, PrimeField as Field};
+use udon::field::Field;
 
 use super::{Op, Program, special_value};
 
@@ -81,10 +81,7 @@ pub fn synthesize<'dr, D: Driver<'dr>>(
     allocator: &mut impl Allocator<'dr, D>,
     program: &Program,
     anchors: &[D::F],
-) -> Result<Stacks<'dr, D>>
-where
-    D::F: FftField,
-{
+) -> Result<Stacks<'dr, D>> {
     synthesize_with_hook(dr, allocator, program, anchors, |_, _, _, _| Ok(()))
 }
 
@@ -104,10 +101,7 @@ pub fn synthesize_with_witness<'dr, D: Driver<'dr>>(
     program: &Program,
     witness: DriverValue<D, [D::F; super::Preamble::LEN]>,
     anchors: &[D::F],
-) -> Result<Stacks<'dr, D>>
-where
-    D::F: FftField,
-{
+) -> Result<Stacks<'dr, D>> {
     let structure: [D::F; super::Preamble::LEN] = program.preamble.values();
     let mut elems: Vec<Element<'dr, D>> = Vec::with_capacity(structure.len());
     let mut advice_wires: Vec<D::Wire> = Vec::new();
@@ -144,10 +138,7 @@ pub fn synthesize_with_hook<'dr, D: Driver<'dr>>(
     program: &Program,
     anchors: &[D::F],
     hook: impl FnMut(&mut D, usize, &mut Vec<Element<'dr, D>>, &mut Vec<Boolean<'dr, D>>) -> Result<()>,
-) -> Result<Stacks<'dr, D>>
-where
-    D::F: FftField,
-{
+) -> Result<Stacks<'dr, D>> {
     let values: [D::F; super::Preamble::LEN] = program.preamble.values();
     let mut elems: Vec<Element<'dr, D>> = Vec::with_capacity(values.len());
     let mut advice_wires: Vec<D::Wire> = Vec::new();
@@ -178,10 +169,7 @@ fn synthesize_ops<'dr, D: Driver<'dr>>(
         &mut Vec<Element<'dr, D>>,
         &mut Vec<Boolean<'dr, D>>,
     ) -> Result<()>,
-) -> Result<Stacks<'dr, D>>
-where
-    D::F: FftField,
-{
+) -> Result<Stacks<'dr, D>> {
     let mut bools: Vec<Boolean<'dr, D>> = Vec::new();
     let mut bool_advice_wires: Vec<D::Wire> = Vec::new();
     let mut fold_advice: Vec<(usize, D::Wire)> = Vec::new();

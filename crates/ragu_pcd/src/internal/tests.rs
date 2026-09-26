@@ -6,7 +6,7 @@ use ragu_circuits::{
     Circuit,
     staging::{Stage, StageExt},
 };
-use ragu_core::pasta::{Fp, Pasta};
+use ragu_core::pasta::{Fp, Fq, Pasta};
 use udon::{fp_hex, fq_hex};
 
 use super::*;
@@ -19,11 +19,11 @@ use ragu_core::{
     gadgets::{Bound, Gadget},
     maybe::Empty,
 };
-use udon::field::FftField;
+use udon::field::Field;
 
 pub fn assert_stage_values<F, R, S>(stage: &S)
 where
-    F: FftField,
+    F: Field,
     R: Rank,
     S: Stage<F, R>,
     for<'dr> Bound<'dr, Emulator<Wireless<Empty, F>>, S::OutputKind>:
@@ -233,7 +233,9 @@ fn test_native_registry_digest() {
         .finalize(pasta)
         .unwrap();
 
-    let expected = fp_hex!("0x0ed4508b44f141c210b5d5d3bc00c9ec5a9458f89de2210129e03084467adf28");
+    let expected = Fp::new(fp_hex!(
+        "0x0ed4508b44f141c210b5d5d3bc00c9ec5a9458f89de2210129e03084467adf28"
+    ));
 
     assert_eq!(
         app.native_registry.digest(),
@@ -257,7 +259,9 @@ fn test_nested_registry_digest() {
         .finalize(pasta)
         .unwrap();
 
-    let expected = fq_hex!("0x2f4bf855b80a694facbe9a2c26ee8d1dae9e15bb7b7eba54ca53f5c166e1d150");
+    let expected = Fq::new(fq_hex!(
+        "0x2f4bf855b80a694facbe9a2c26ee8d1dae9e15bb7b7eba54ca53f5c166e1d150"
+    ));
 
     assert_eq!(
         app.nested_registry.digest(),
@@ -302,14 +306,14 @@ fn print_registry_digests() {
 
     println!("\n// Copy-paste the following into the registry digest tests:");
     println!(
-        "    let expected = fp_hex!(\"0x{}\");",
+        "    let expected = Fp::new(fp_hex!(\"0x{}\"));",
         native_bytes
             .iter()
             .map(|b| format!("{:02x}", b))
             .collect::<String>()
     );
     println!(
-        "    let expected = fq_hex!(\"0x{}\");",
+        "    let expected = Fq::new(fq_hex!(\"0x{}\"));",
         nested_bytes
             .iter()
             .map(|b| format!("{:02x}", b))

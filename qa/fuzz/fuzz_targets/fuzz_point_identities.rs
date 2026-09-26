@@ -40,11 +40,14 @@ use ragu_core::{
     pasta::{EpAffine, Fp, Fq},
 };
 use ragu_primitives::{Boolean, NonzeroBank, Point, Simulator, allocator::Standard};
-use udon::curve::{Affine, Projective};
+use udon::{
+    curve::{Affine, Projective},
+    field::Field,
+};
 
 /// Precomputed table of non-identity Pallas points.
 ///
-/// Replaces per-input `EpAffine::GENERATOR * Fq::from(seed)` (~50µs
+/// Replaces per-input `EpAffine::generator() * Fq::from(seed)` (~50µs
 /// each) with a 64-point modular lookup. The point-identity tests
 /// (negate involution, endo cube, conditional_*, add commutativity,
 /// double-and-add) exercise *algebraic gadget paths*, not point-shape
@@ -54,10 +57,10 @@ use udon::curve::{Affine, Projective};
 /// guard) and whether `2P` and `Q` collide on x (existing skip guard).
 const POINT_TABLE_LEN: usize = 64;
 static POINT_TABLE: LazyLock<[EpAffine; POINT_TABLE_LEN]> = LazyLock::new(|| {
-    let mut points = [EpAffine::GENERATOR; POINT_TABLE_LEN];
+    let mut points = [EpAffine::generator(); POINT_TABLE_LEN];
     for (i, p) in points.iter_mut().enumerate() {
         if i > 0 {
-            *p = (EpAffine::GENERATOR * Fq::from(i as u64)).to_affine();
+            *p = (EpAffine::generator() * Fq::from(i as u64)).to_affine();
         }
     }
     points

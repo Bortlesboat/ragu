@@ -24,10 +24,7 @@ use ragu_core::{
     gadgets::Gadget,
     maybe::{Always, Maybe},
 };
-use udon::{
-    curve::EndomorphismAffine as Affine,
-    field::{CubeRootField, FftField, Field as _, PrimeField as Field},
-};
+use udon::{curve::EndomorphismAffine as Affine, field::Field};
 
 use crate::{
     Boolean, Element, NonzeroBank, Point,
@@ -127,10 +124,7 @@ impl<'dr, D: Driver<'dr>> EndoscalarChallenge<'dr, D> {
         dr: &mut D,
         allocator: &mut A,
         elem: Element<'dr, D>,
-    ) -> Result<Self>
-    where
-        D::F: FftField,
-    {
+    ) -> Result<Self> {
         // Emulator drivers never evaluate the decomposition constraints, so
         // also reject an out-of-range witness value directly; `try_just` runs
         // only during witness generation and emits nothing, leaving circuit
@@ -158,7 +152,7 @@ impl<'dr, D: Driver<'dr>> EndoscalarChallenge<'dr, D> {
 
 type NativeEmulator<F> = Emulator<Wireless<Always<()>, F>>;
 
-impl<'dr, F: FftField> EndoscalarChallenge<'dr, NativeEmulator<F>> {
+impl<'dr, F: Field> EndoscalarChallenge<'dr, NativeEmulator<F>> {
     /// Attempts to validate an element as an endoscalar challenge, reporting an
     /// out-of-range element as `Ok(None)` rather than an error.
     ///
@@ -262,7 +256,7 @@ impl<'dr, F: FftField> EndoscalarChallenge<'dr, NativeEmulator<F>> {
 /// An implementation detail of `from_element`, which reports an out-of-range
 /// value as a typed [`EndoscalarRangeError`] failure that rejection-sampling
 /// callers detect with [`Error::invalid_witness_source`].
-fn endoscalar_in_range<F: FftField>(value: F) -> bool {
+fn endoscalar_in_range<F: Field>(value: F) -> bool {
     !Field::to_le_bits(&value).as_ref()[F::CAPACITY as usize..]
         .iter()
         .any(|bit| *bit)
@@ -333,10 +327,7 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
         dr: &mut D,
         allocator: &mut A,
         elem: &Element<'dr, D>,
-    ) -> Result<Self>
-    where
-        D::F: FftField,
-    {
+    ) -> Result<Self> {
         let bits = decompose(dr, allocator, elem)?;
 
         let value = elem.value().map(|v| {
@@ -392,10 +383,7 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
         &self,
         dr: &mut D,
         p: &Point<'dr, D, C>,
-    ) -> Result<Point<'dr, D, C>>
-    where
-        D::F: FftField,
-    {
+    ) -> Result<Point<'dr, D, C>> {
         // Soundness: every `add_incomplete` and `double_and_add_incomplete`
         // call below requires `x_1 != x_0`. Appendix C of the Halo paper
         // (<https://eprint.iacr.org/2019/1021>) proves no such collision occurs
@@ -431,10 +419,7 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
     ///
     /// Any satisfying assignment makes the returned element represent the
     /// effective scalar for this endoscalar.
-    pub fn lift(&self, dr: &mut D) -> Result<Element<'dr, D>>
-    where
-        D::F: FftField + CubeRootField,
-    {
+    pub fn lift(&self, dr: &mut D) -> Result<Element<'dr, D>> {
         let mut constant_term = (D::F::ZETA + D::F::ONE).double();
         let coeffs = [
             -D::F::from(2),
@@ -475,7 +460,7 @@ impl<'dr, D: Driver<'dr>> Endoscalar<'dr, D> {
 ///
 /// This implements [Algorithm 2, \[BGH19\]](https://eprint.iacr.org/2019/1021)
 /// and is the native counterpart to [`Endoscalar::lift`].
-pub fn lift_endoscalar<F: FftField + CubeRootField>(endo: u128) -> F {
+pub fn lift_endoscalar<F: Field>(endo: u128) -> F {
     let mut acc = (F::ZETA + F::ONE).double();
     for i in 0..(u128::BITS as usize / 2) {
         let bits = endo >> (i << 1);
@@ -521,7 +506,7 @@ pub fn lift_endoscalar<F: FftField + CubeRootField>(endo: u128) -> F {
 /// ($\mathtt{value} \geq 2^{\mathtt{CAPACITY}}$); the boxed source is an
 /// [`EndoscalarRangeError`], so callers modeling transcript rejection can
 /// detect the condition with [`Error::invalid_witness_source`].
-pub fn extract_endoscalar<F: FftField>(value: F) -> Result<u128> {
+pub fn extract_endoscalar<F: Field>(value: F) -> Result<u128> {
     Emulator::emulate_wireless(value, |dr, witness| {
         let elem = Element::alloc(dr, &mut (), witness)?;
         let challenge = EndoscalarChallenge::from_element(dr, &mut (), elem)?;
@@ -539,8 +524,8 @@ mod tests {
     };
     use rand::{Rng, RngExt};
     use udon::{
-        curve::{EndomorphismAffine as Affine, EndomorphismProjective, Projective},
-        field::{CubeRootField, FftField, PrimeField as Field},
+        curve::{Affine as _, EndomorphismAffine as Affine, EndomorphismProjective, Projective},
+        field::Field,
     };
 
     use super::{
@@ -573,12 +558,12 @@ mod tests {
         }
 
         /// Implements [Algorithm 2, \[BGH19\]](https://eprint.iacr.org/2019/1021).
-        pub fn lift<F: FftField + CubeRootField>(&self) -> F {
+        pub fn lift<F: Field>(&self) -> F {
             super::lift_endoscalar(self.value)
         }
     }
 
-    pub fn extract<F: FftField + FftField>(value: F) -> EndoscalarTest {
+    pub fn extract<F: Field>(value: F) -> EndoscalarTest {
         EndoscalarTest {
             value: super::extract_endoscalar(value)
                 .expect("test challenge should satisfy value < 2^CAPACITY"),
@@ -590,7 +575,7 @@ mod tests {
     fn test_endoscaling_consistency() {
         use ragu_core::pasta::{EpAffine, Fq};
 
-        let p = EpAffine::GENERATOR;
+        let p = EpAffine::generator();
         let e = EndoscalarTest {
             value: 206786806484900909362154774549736492353u128,
         };
@@ -602,9 +587,9 @@ mod tests {
 
     #[test]
     fn test_extract() -> Result<()> {
-        let p = EpAffine::GENERATOR;
+        let p = EpAffine::generator();
         let r = loop {
-            let r = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+            let r = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
             if super::endoscalar_in_range(r) {
                 break r;
             }
@@ -727,7 +712,7 @@ mod tests {
         // Random sampling: the predicate must match validation on fresh draws,
         // exercising the overwhelmingly-in-range path.
         for _ in 0..32 {
-            let value = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+            let value = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
             assert_eq!(super::endoscalar_in_range(value), constraints_accept(value));
         }
     }
@@ -826,7 +811,7 @@ mod tests {
 
     #[test]
     fn test_endoscaling() -> Result<()> {
-        let p = EpAffine::GENERATOR;
+        let p = EpAffine::generator();
         let r: u128 = rand::rng().random();
         let expected = EndoscalarTest { value: r }.scale(&p);
 

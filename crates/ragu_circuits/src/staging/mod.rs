@@ -72,7 +72,7 @@
 //! let mask_handle = builder.register_bonding(MyStage::mask()?);
 //! let registry = builder.finalize()?;
 //!
-//! let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+//! let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 //! assert_eq!(a.revdot(&registry.y(mask_handle, y)), Fp::ZERO);
 //! ```
 //!
@@ -86,7 +86,7 @@
 //! let b = MyStage::rx(alpha_b, my_stage_witness)?;
 //!
 //! // Sample random challenge z after committing to `a` and `b`
-//! let z = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+//! let z = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 //!
 //! let mut combined = a.clone();
 //! combined.scale(z);
@@ -95,7 +95,7 @@
 //! let mask_handle = builder.register_bonding(MyStage::mask()?);
 //! let registry = builder.finalize()?;
 //!
-//! let y = udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes));
+//! let y = Fp::random(|bytes| rand::rng().fill_bytes(bytes));
 //! assert_eq!(combined.revdot(&registry.y(mask_handle, y)), Fp::ZERO);
 //! ```
 //!
@@ -163,7 +163,7 @@ use ragu_primitives::{
     io::Write,
 };
 use rx_driver::RxDriver;
-use udon::field::{DeferredField, Field};
+use udon::field::Field;
 
 use crate::{
     BondingObject, Circuit, WithAux,
@@ -394,10 +394,7 @@ pub trait StageExt<F: Field, R: Rank>: Stage<F, R> {
         &self,
         alpha: F,
         witness: Self::Witness<'_>,
-    ) -> Result<sparse::Polynomial<F, R>>
-    where
-        F: DeferredField,
-    {
+    ) -> Result<sparse::Polynomial<F, R>> {
         let values = {
             let mut dr = Emulator::extractor();
             let out = self.witness(&mut dr, Always::maybe_just(|| witness))?;
@@ -439,7 +436,6 @@ pub trait StageExt<F: Field, R: Rank>: Stage<F, R> {
     fn rx(alpha: F, witness: Self::Witness<'_>) -> Result<sparse::Polynomial<F, R>>
     where
         Self: Default,
-        F: DeferredField,
     {
         Self::default().rx_configured(alpha, witness)
     }

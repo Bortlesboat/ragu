@@ -68,6 +68,7 @@ use ragu_testing_fuzz::substrate::{
     Capabilities, Limits, OpSet, Overrides, Preamble, Program, ProgramCircuit, native_satisfied,
     shadow_eval, synthesize_with_witness,
 };
+use udon::field::Field;
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct Input {

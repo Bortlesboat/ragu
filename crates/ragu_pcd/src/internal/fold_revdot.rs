@@ -16,7 +16,7 @@ use ragu_primitives::{
     io::Buffer,
     vec::{CollectFixed, ConstLen, FixedVec, Len},
 };
-use udon::field::{DeferredField, Field};
+use udon::field::Field;
 
 /// The two operations a Horner-style fold needs: scale all components, then
 /// add another element in.
@@ -137,13 +137,7 @@ pub fn fold_outer<T: Foldable<F>, F: Field, P: Parameters>(
 ///
 /// This computes off-diagonal revdot products for each group of `Inner`
 /// polynomials, producing `Outer` groups of error terms.
-fn compute_errors_impl<
-    B: ragu_backend::Backend,
-    F: DeferredField,
-    R: Rank,
-    Outer: Len,
-    Inner: Len,
->(
+fn compute_errors_impl<B: ragu_backend::Backend, F: Field, R: Rank, Outer: Len, Inner: Len>(
     a: &[impl Borrow<sparse::Polynomial<F, R>>],
     b: &[impl Borrow<sparse::Polynomial<F, R>>],
 ) -> FixedVec<FixedVec<F, NumErrorTerms<Inner>>, Outer> {
@@ -182,7 +176,7 @@ fn compute_errors_impl<
 
 /// Inner error terms: `NumGroups` groups of `GroupSize`*(`GroupSize`-1) off-diagonal revdot products.
 #[cfg(test)]
-pub fn inner_error_terms<F: DeferredField, R: Rank, P: Parameters>(
+pub fn inner_error_terms<F: Field, R: Rank, P: Parameters>(
     a: &[impl Borrow<sparse::Polynomial<F, R>>],
     b: &[impl Borrow<sparse::Polynomial<F, R>>],
 ) -> FixedVec<FixedVec<F, NumErrorTerms<P::GroupSize>>, P::NumGroups> {
@@ -192,7 +186,7 @@ pub fn inner_error_terms<F: DeferredField, R: Rank, P: Parameters>(
 /// Computes inner error terms through the selected backend.
 pub fn inner_error_terms_with_backend<
     B: ragu_backend::Backend,
-    F: DeferredField,
+    F: Field,
     R: Rank,
     P: Parameters,
 >(
@@ -204,7 +198,7 @@ pub fn inner_error_terms_with_backend<
 
 /// Outer error terms: `NumGroups`*(`NumGroups`-1) off-diagonal revdot products.
 #[cfg(test)]
-pub fn outer_error_terms<F: DeferredField, R: Rank, P: Parameters>(
+pub fn outer_error_terms<F: Field, R: Rank, P: Parameters>(
     a: &[impl Borrow<sparse::Polynomial<F, R>>],
     b: &[impl Borrow<sparse::Polynomial<F, R>>],
 ) -> FixedVec<F, NumErrorTerms<P::NumGroups>> {
@@ -214,7 +208,7 @@ pub fn outer_error_terms<F: DeferredField, R: Rank, P: Parameters>(
 /// Computes outer error terms through the selected backend.
 pub fn outer_error_terms_with_backend<
     B: ragu_backend::Backend,
-    F: DeferredField,
+    F: Field,
     R: Rank,
     P: Parameters,
 >(
@@ -363,8 +357,8 @@ mod tests {
         let error_terms = outer_error_terms::<Fp, TestRank, P>(&lhs, &rhs);
         let error: Vec<Fp> = error_terms.iter().copied().collect();
 
-        let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-        let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+        let mu = Fp::random(|bytes| rng.fill_bytes(bytes));
+        let nu = Fp::random(|bytes| rng.fill_bytes(bytes));
         let mu_inv = mu.invert().unwrap();
         let munu = mu * nu;
 
@@ -427,8 +421,8 @@ mod tests {
             let ky_values: Vec<Fp> = lhs.iter().zip(&rhs).map(|(l, r)| l.revdot(r)).collect();
 
             // Layer 1 challenges
-            let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-            let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let mu = Fp::random(|bytes| rng.fill_bytes(bytes));
+            let nu = Fp::random(|bytes| rng.fill_bytes(bytes));
             let mu_inv = mu.invert().unwrap();
             let munu = mu * nu;
 
@@ -486,25 +480,13 @@ mod tests {
     fn test_fold_products_constraints() -> Result<()> {
         fn measure<P: Parameters>() -> Result<usize> {
             let sim = Simulator::simulate((), |dr, _| {
-                let mu = Element::constant(
-                    dr,
-                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                );
-                let nu = Element::constant(
-                    dr,
-                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                );
+                let mu = Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)));
+                let nu = Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)));
                 let error_terms = FixedVec::from_fn(|_| {
-                    Element::constant(
-                        dr,
-                        udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                    )
+                    Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)))
                 });
                 let ky_values = FixedVec::from_fn(|_| {
-                    Element::constant(
-                        dr,
-                        udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                    )
+                    Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)))
                 });
 
                 let fold_products = ClaimFolder::new(dr, &mu, &nu)?;
@@ -545,8 +527,8 @@ mod tests {
             let ky_values: Vec<Fp> = lhs.iter().zip(&rhs).map(|(l, r)| l.revdot(r)).collect();
 
             // Layer 1 challenges
-            let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-            let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let mu = Fp::random(|bytes| rng.fill_bytes(bytes));
+            let nu = Fp::random(|bytes| rng.fill_bytes(bytes));
             let mu_inv = mu.invert().unwrap();
             let munu = mu * nu;
 
@@ -593,8 +575,8 @@ mod tests {
             }
 
             // Layer 2 challenges
-            let mu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-            let nu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let mu_prime = Fp::random(|bytes| rng.fill_bytes(bytes));
+            let nu_prime = Fp::random(|bytes| rng.fill_bytes(bytes));
             let mu_prime_inv = mu_prime.invert().unwrap();
             let mu_prime_nu_prime = mu_prime * nu_prime;
 
@@ -664,13 +646,13 @@ mod tests {
                 .collect();
 
             // Random evaluation point
-            let x = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let x = Fp::random(|bytes| rng.fill_bytes(bytes));
 
             // Challenge values (matching compute_v.rs usage pattern)
-            let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-            let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-            let mu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-            let nu_prime = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+            let mu = Fp::random(|bytes| rng.fill_bytes(bytes));
+            let nu = Fp::random(|bytes| rng.fill_bytes(bytes));
+            let mu_prime = Fp::random(|bytes| rng.fill_bytes(bytes));
+            let nu_prime = Fp::random(|bytes| rng.fill_bytes(bytes));
 
             // Derived scale factors for lhs: mu_inv, mu_prime_inv
             let mu_inv = mu.invert().unwrap();
@@ -792,25 +774,25 @@ mod tests {
                     dr,
                     allocator,
                     rng.as_mut()
-                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                        .map(|rng| Fp::random(|bytes| rng.fill_bytes(bytes))),
                 )?;
                 let nu = Element::alloc(
                     dr,
                     allocator,
                     rng.as_mut()
-                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                        .map(|rng| Fp::random(|bytes| rng.fill_bytes(bytes))),
                 )?;
                 let mu_prime = Element::alloc(
                     dr,
                     allocator,
                     rng.as_mut()
-                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                        .map(|rng| Fp::random(|bytes| rng.fill_bytes(bytes))),
                 )?;
                 let nu_prime = Element::alloc(
                     dr,
                     allocator,
                     rng.as_mut()
-                        .map(|rng| udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))),
+                        .map(|rng| Fp::random(|bytes| rng.fill_bytes(bytes))),
                 )?;
 
                 // Layer 1: N instances of M-sized reductions (uses mu, nu).
@@ -823,9 +805,8 @@ mod tests {
                         Element::alloc(
                             dr,
                             allocator,
-                            rng.as_mut().map(|rng| {
-                                udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))
-                            }),
+                            rng.as_mut()
+                                .map(|rng| Fp::random(|bytes| rng.fill_bytes(bytes))),
                         )
                     })
                 })?;
@@ -835,9 +816,8 @@ mod tests {
                             Element::alloc(
                                 dr,
                                 allocator,
-                                rng.as_mut().map(|rng| {
-                                    udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))
-                                }),
+                                rng.as_mut()
+                                    .map(|rng| Fp::random(|bytes| rng.fill_bytes(bytes))),
                             )
                         })
                     })?;
@@ -857,9 +837,8 @@ mod tests {
                         Element::alloc(
                             dr,
                             allocator,
-                            rng.as_mut().map(|rng| {
-                                udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes))
-                            }),
+                            rng.as_mut()
+                                .map(|rng| Fp::random(|bytes| rng.fill_bytes(bytes))),
                         )
                     })?;
 
@@ -961,26 +940,14 @@ mod tests {
         // Verify layer 1 constraint count formula: 2M^2 + 1 per group
         fn measure_m<const M: usize>() -> Result<usize> {
             let sim = Simulator::simulate((), |dr, _| {
-                let mu = Element::constant(
-                    dr,
-                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                );
-                let nu = Element::constant(
-                    dr,
-                    udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                );
+                let mu = Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)));
+                let nu = Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)));
                 let error_terms: FixedVec<_, NumErrorTerms<ConstLen<M>>> =
                     FixedVec::from_fn(|_| {
-                        Element::constant(
-                            dr,
-                            udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                        )
+                        Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)))
                     });
                 let ky_values: FixedVec<_, ConstLen<M>> = FixedVec::from_fn(|_| {
-                    Element::constant(
-                        dr,
-                        udon::field::random::<Fp>(|bytes| rand::rng().fill_bytes(bytes)),
-                    )
+                    Element::constant(dr, Fp::random(|bytes| rand::rng().fill_bytes(bytes)))
                 });
 
                 let fold_products = ClaimFolder::new(dr, &mu, &nu)?;
@@ -1017,8 +984,8 @@ mod tests {
             .map(|_| sparse::Polynomial::random(&mut rng))
             .collect();
 
-        let mu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-        let nu = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+        let mu = Fp::random(|bytes| rng.fill_bytes(bytes));
+        let nu = Fp::random(|bytes| rng.fill_bytes(bytes));
         let mu_inv = mu.invert().unwrap();
         let munu = mu * nu;
 

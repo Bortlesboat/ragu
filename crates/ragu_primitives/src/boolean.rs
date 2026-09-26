@@ -11,7 +11,7 @@ use ragu_core::{
     gadgets::{Gadget, Kind},
     maybe::Maybe,
 };
-use udon::field::{FftField, Field, PrimeField as _};
+use udon::field::Field;
 
 use crate::{
     Element, GadgetExt,
@@ -268,7 +268,7 @@ impl<F: Field> Promotion<F> for Kind![F; @Boolean<'_, _>] {
 ///
 /// The number of bits determines the emitted virtual wire expressions. The
 /// length must not be derived from witness input.
-pub fn multipack<'dr, D: Driver<'dr, F: udon::field::FftField>>(
+pub fn multipack<'dr, D: Driver<'dr>>(
     dr: &mut D,
     bits: &[Boolean<'dr, D>],
 ) -> Result<Vec<Element<'dr, D>>> {
@@ -325,7 +325,7 @@ pub fn multipack<'dr, D: Driver<'dr, F: udon::field::FftField>>(
 /// constraints are unsatisfiable. Over the Pasta fields a uniformly random
 /// element falls outside this range with negligible probability (about
 /// $2^{-129}$).
-pub(crate) fn decompose<'dr, D: Driver<'dr, F: FftField>>(
+pub(crate) fn decompose<'dr, D: Driver<'dr>>(
     dr: &mut D,
     allocator: &mut impl Allocator<'dr, D>,
     elem: &Element<'dr, D>,

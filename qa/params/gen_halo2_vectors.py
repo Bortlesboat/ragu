@@ -118,7 +118,7 @@ def parse_vectors(path, field, modulus):
 
 
 def render_element(macro, value):
-    return f'{macro}_hex!("0x{value:064x}")'
+    return f'{macro.capitalize()}::new({macro}_hex!("0x{value:064x}"))'
 
 
 def render_rows(macro, rows, indent="    "):

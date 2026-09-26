@@ -67,7 +67,7 @@ use ragu_testing::{
     pcd::nontrivial::{Hash2, Merge2, WitnessLeaf},
 };
 use rand::{SeedableRng, rngs::StdRng};
-use udon::field::FftField;
+use udon::field::Field;
 
 /// One circuit's census at one capture point.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -93,7 +93,7 @@ struct Census {
 }
 
 /// Captures one circuit and runs every check, returning its census.
-fn check<'w, F: FftField, Cir: Circuit<F>>(
+fn check<'w, F: Field, Cir: Circuit<F>>(
     point: &str,
     spec: &CircuitSpec,
     circuit: &Cir,

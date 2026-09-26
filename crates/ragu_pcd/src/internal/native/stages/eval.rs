@@ -26,7 +26,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::{Element, allocator::Allocator, io::Write};
-use udon::field::FftField;
+use udon::field::Field;
 
 use crate::{
     Proof,
@@ -58,7 +58,7 @@ pub struct ChildEvaluationsWitness<F> {
     pub p_poly: F,
 }
 
-impl<F: FftField> ChildEvaluationsWitness<F> {
+impl<F: Field> ChildEvaluationsWitness<F> {
     /// Create child evaluations witness from a proof evaluated at point u.
     pub fn from_proof<C: Cycle<CircuitField = F>, R: Rank, B: ragu_backend::Backend>(
         proof: &Proof<C, R>,

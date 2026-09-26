@@ -1,5 +1,6 @@
 use ragu_core::pasta::{EpAffine, Fp};
 use ragu_primitives::Point;
+use udon::curve::Affine;
 
 use crate::{
     instance::{CircuitInstance, InstanceDriver, WireCollector, WireDeserializer},
@@ -24,7 +25,7 @@ impl CircuitInstance for PointConditionalEndoInstance {
         let point_wires = dr.alloc_input_wires(2);
 
         let cond = boolean_from_wire(cond_wires[0].clone())?;
-        let point_template = Point::constant(dr, EpAffine::GENERATOR)?;
+        let point_template = Point::constant(dr, EpAffine::generator())?;
         let point = WireDeserializer::new(point_wires).into_gadget(&point_template)?;
 
         let result = point.conditional_endo(dr, &cond)?;

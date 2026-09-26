@@ -5,7 +5,7 @@ use ragu_core::{
     drivers::{Driver, DriverTypes},
     gadgets::Gadget,
 };
-use udon::field::{DeferredField, FftField};
+use udon::field::Field;
 
 use crate::{
     driver::ExtractionDriver,
@@ -24,7 +24,7 @@ pub trait InstanceDriver<'dr>: Driver<'dr> {
     fn alloc_input_wires(&mut self, n: usize) -> Vec<Self::Wire>;
 }
 
-impl<'dr, F: FftField> InstanceDriver<'dr> for ExtractionDriver<F> {
+impl<'dr, F: Field> InstanceDriver<'dr> for ExtractionDriver<F> {
     fn alloc_input_wires(&mut self, n: usize) -> Vec<Self::Wire> {
         ExtractionDriver::alloc_input_wires(self, n)
     }
@@ -103,7 +103,7 @@ impl<D: DriverTypes> WireMap<D::ImplField> for WireDeserializer<D> {
 
 /// A circuit's extracted trace: its input wire count, recorded operations,
 /// and output wires.
-pub struct ExtractedTrace<F: FftField> {
+pub struct ExtractedTrace<F: Field> {
     pub input_len: usize,
     pub ops: Vec<Op<F>>,
     pub outputs: Vec<Expr<F>>,
@@ -111,7 +111,7 @@ pub struct ExtractedTrace<F: FftField> {
 
 /// One concrete invocation of a deployed gadget enrolled in FV.
 pub trait CircuitInstance {
-    type Field: FftField + DeferredField;
+    type Field: Field;
 
     /// Run the real gadget code on any FV driver and serialize its outputs.
     fn circuit<'dr, D>(dr: &mut D) -> ragu_core::Result<Vec<D::Wire>>

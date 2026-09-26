@@ -49,9 +49,9 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: SelectableBackend>
         mut rng: RNG,
     ) -> Result<bool> {
         // Sample verification challenges w, y, and z.
-        let w = udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes));
-        let y = udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes));
-        let z = udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes));
+        let w = C::CircuitField::random(|bytes| rng.fill_bytes(bytes));
+        let y = C::CircuitField::random(|bytes| rng.fill_bytes(bytes));
+        let z = C::CircuitField::random(|bytes| rng.fill_bytes(bytes));
 
         // The proof's circuit_id selects which wiring polynomial the verifier
         // checks against, and every domain point carries one, so an in-domain id
@@ -126,8 +126,8 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: SelectableBackend>
         // Check all nested revdot claims.
         let nested_revdot_claims = {
             let nested_source = nested::SingleProofSource { proof: pcd.proof() };
-            let y_nested = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
-            let z_nested = udon::field::random::<C::ScalarField>(|bytes| rng.fill_bytes(bytes));
+            let y_nested = C::ScalarField::random(|bytes| rng.fill_bytes(bytes));
+            let z_nested = C::ScalarField::random(|bytes| rng.fill_bytes(bytes));
             let mut nested_builder = claims::Builder::<_, C::ScalarField, R, Verifier<B>>::new(
                 &self.nested_registry,
                 y_nested,

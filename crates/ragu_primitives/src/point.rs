@@ -12,10 +12,7 @@ use ragu_core::{
     gadgets::Gadget,
     maybe::Maybe,
 };
-use udon::{
-    curve::EndomorphismAffine as Affine,
-    field::{CubeRootField, FftField},
-};
+use udon::{curve::EndomorphismAffine as Affine, field::Field};
 
 use crate::{
     Boolean, Element, Nonzero, NonzeroBank, comparison::GadgetEquals, consistent::Consistent,
@@ -198,10 +195,7 @@ impl<'dr, D: Driver<'dr, F = C::Base>, C: Affine> Point<'dr, D, C> {
     ///
     /// Returns a witness-generation error if the slope assignment cannot be
     /// computed from witness input.
-    pub fn double(&self, dr: &mut D) -> Result<Self>
-    where
-        D::F: FftField,
-    {
+    pub fn double(&self, dr: &mut D) -> Result<Self> {
         // delta = 3x^2 / 2y
         let double_y = self.y.double(dr);
         let delta = self
@@ -287,10 +281,7 @@ impl<'dr, D: Driver<'dr, F = C::Base>, C: Affine> Point<'dr, D, C> {
         dr: &mut D,
         other: &Self,
         bank: &mut NonzeroBank<'dr, D>,
-    ) -> Result<Self>
-    where
-        D::F: FftField,
-    {
+    ) -> Result<Self> {
         // See <https://github.com/zcash/zcash/issues/3924> for an explanation.
 
         // lambda_1 = (y_q - y_p)/(x_q - x_p)
@@ -330,7 +321,7 @@ impl<'dr, D: Driver<'dr, F = C::Base>, C: Affine> Consistent<'dr, D> for Point<'
 mod tests {
     use alloc::{vec, vec::Vec};
 
-    use udon::curve::Affine;
+    use udon::curve::{Affine, EndomorphismProjective, Projective};
 
     use super::*;
 

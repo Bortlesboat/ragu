@@ -5,7 +5,7 @@ use ragu_circuits::{
 use ragu_core::pasta::Fp;
 use ragu_testing::circuits::{MySimpleCircuit, SquareCircuit};
 use rand::{Rng, SeedableRng, rngs::StdRng};
-use udon::field::PrimeField as Field;
+use udon::field::Field;
 
 pub trait SetupRng<Out> {
     fn setup(self, rng: &mut StdRng) -> Out;
@@ -50,7 +50,7 @@ pub fn setup_with_rng<T, Fns: SetupRng<S>, S>(other: T, fns: Fns) -> (T, S) {
 }
 
 pub fn f<F: Field>(rng: &mut StdRng) -> F {
-    udon::field::random::<F>(|bytes| rng.fill_bytes(bytes))
+    F::random(|bytes| rng.fill_bytes(bytes))
 }
 
 pub fn rand_sparse_poly(rng: &mut StdRng) -> sparse::Polynomial<Fp, ProductionRank> {

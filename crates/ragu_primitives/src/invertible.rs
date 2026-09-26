@@ -4,7 +4,7 @@ use ragu_core::{
     gadgets::{Gadget, Kind},
     maybe::Maybe,
 };
-use udon::field::{FftField, Field};
+use udon::field::Field;
 
 use crate::{
     Element, GadgetExt,
@@ -89,20 +89,18 @@ impl<'dr, D: Driver<'dr>> Nonzero<'dr, D> {
     pub fn divide(&self, dr: &mut D, divisor: &Self) -> Result<Self> {
         Ok(Self::new_unchecked(self.element.divide(dr, divisor)?))
     }
-}
 
-impl<'dr, D: Driver<'dr, F: FftField>> Nonzero<'dr, D> {
     /// Monomorphization-time guard that `D::F` has odd characteristic, which
     /// is what makes [`double`](Self::double) preserve nonzeroness: $2x = 0$
     /// has no nonzero solution iff $\mathrm{char}(F) \neq 2$.
     ///
     /// $S$ is the 2-adicity of $p - 1$ where $p = \mathrm{char}(D::F)$. For
     /// any odd prime $p$, $p - 1$ is even, so $S \geq 1$. The only prime
-    /// field where $S = 0$ is $\mathbb{F}_2$; bounding on [`FftField`]
+    /// field where $S = 0$ is $\mathbb{F}_2$; bounding on [`Field`]
     /// already rules out extension fields, so together this excludes every
     /// char-2 field.
     pub const ASSERT_ODD_CHAR: () = assert!(
-        <D::F as FftField>::TWO_ADICITY >= 1,
+        <D::F as Field>::TWO_ADICITY >= 1,
         "Nonzero::double requires a field of odd characteristic",
     );
 

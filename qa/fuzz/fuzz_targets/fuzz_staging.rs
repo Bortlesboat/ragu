@@ -131,7 +131,7 @@ use ragu_core::{
     pasta::Fp,
 };
 use ragu_primitives::Element;
-use udon::field::FftField;
+use udon::field::Field;
 
 // ---------------------------------------------------------------------------
 // Stage definitions. Each stage allocates a fixed number of wires; the

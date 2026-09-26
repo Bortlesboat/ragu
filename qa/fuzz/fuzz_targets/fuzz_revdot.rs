@@ -27,7 +27,7 @@ use ragu_testing_fuzz::{
     params::{FieldChoice, RankChoice},
     with_field, with_rank,
 };
-use udon::field::{DeferredField, FftField, Field};
+use udon::field::Field;
 
 #[derive(Arbitrary, Debug)]
 struct Input {
@@ -40,7 +40,7 @@ struct Input {
     fold_scale: u64,
 }
 
-fn build_poly<F: FftField, R: Rank>(
+fn build_poly<F: Field, R: Rank>(
     lens: &[u8; 4],
     coeffs: &mut impl Iterator<Item = F>,
 ) -> Polynomial<F, R> {
@@ -95,7 +95,7 @@ fuzz_target!(|input: Input| {
     });
 });
 
-fn run<F: FftField + DeferredField, R: Rank>(input: &Input) {
+fn run<F: Field, R: Rank>(input: &Input) {
     let mut coeffs = input.coeffs.iter().map(|&v| F::from(v));
 
     let p1 = build_poly::<F, R>(&input.p1_lens, &mut coeffs);

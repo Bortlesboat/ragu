@@ -1,6 +1,7 @@
 use ragu_circuits::horner::Horner;
 use ragu_core::pasta::Fp;
 use ragu_primitives::{Element, io::Buffer};
+use udon::field::Field;
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireCollector, WireDeserializer};
 

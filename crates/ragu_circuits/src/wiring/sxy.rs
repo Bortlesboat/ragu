@@ -55,7 +55,7 @@ use ragu_core::{
     maybe::Empty,
     routines::Routine,
 };
-use udon::field::DeferredField;
+use udon::field::Field;
 
 use crate::{DriverScope, floor_planner::ConstraintSegment, polynomials::Rank, raw::RawCircuit};
 
@@ -132,7 +132,7 @@ struct Evaluator<'fp, F, R> {
     _marker: core::marker::PhantomData<R>,
 }
 
-impl<F: DeferredField, R: Rank> DriverScope<SxyScope<F>> for Evaluator<'_, F, R> {
+impl<F: Field, R: Rank> DriverScope<SxyScope<F>> for Evaluator<'_, F, R> {
     fn scope(&mut self) -> &mut SxyScope<F> {
         &mut self.scope
     }
@@ -145,7 +145,7 @@ impl<F: DeferredField, R: Rank> DriverScope<SxyScope<F>> for Evaluator<'_, F, R>
 /// - `LCadd` / `LCenforce`: Use [`DirectSum`] to accumulate linear combinations
 ///   as immediate field element sums.
 /// - `ImplWire`: Wires are represented directly as evaluated monomials in $F$.
-impl<F: DeferredField, R: Rank> DriverTypes for Evaluator<'_, F, R> {
+impl<F: Field, R: Rank> DriverTypes for Evaluator<'_, F, R> {
     type MaybeKind = Empty;
     type LCadd = DirectSum<F>;
     type LCenforce = DirectSum<F>;
@@ -197,7 +197,7 @@ impl<F: DeferredField, R: Rank> DriverTypes for Evaluator<'_, F, R> {
     }
 }
 
-impl<'dr, F: DeferredField, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
+impl<'dr, F: Field, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
     type F = F;
     type Wire = F;
 
@@ -305,7 +305,7 @@ impl<'dr, F: DeferredField, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
 /// - `y`: The evaluation point for the $Y$ variable.
 /// - `floor_plan`: Per-segment absolute offsets, computed by
 ///   [`floor_plan()`](crate::floor_planner::floor_plan).
-pub fn eval<F: DeferredField, RC: RawCircuit<F>, R: Rank>(
+pub fn eval<F: Field, RC: RawCircuit<F>, R: Rank>(
     circuit: &RC,
     x: F,
     y: F,

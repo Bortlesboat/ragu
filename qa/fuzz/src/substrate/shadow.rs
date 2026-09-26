@@ -31,7 +31,7 @@
 //!
 //! [`Capabilities::VALUE_FALLIBLE`]: super::Capabilities::VALUE_FALLIBLE
 
-use udon::field::FftField;
+use udon::field::Field;
 
 use super::{
     Op, Program, special_value,
@@ -116,7 +116,7 @@ pub struct ShadowStacks<F> {
 /// Evaluates `program` natively with the given advice overrides.
 pub fn shadow_eval<F>(program: &Program, ov: Overrides<'_, F>) -> ShadowStacks<F>
 where
-    F: FftField,
+    F: Field,
 {
     let elem_ov = |slot: usize, honest: F| -> F {
         ov.elems
@@ -305,7 +305,7 @@ where
 /// observe its honest value?
 pub fn native_satisfied<F>(program: &Program, honest_anchors: &[F], ov: Overrides<'_, F>) -> bool
 where
-    F: FftField,
+    F: Field,
 {
     shadow_eval(program, ov).anchors == honest_anchors
 }

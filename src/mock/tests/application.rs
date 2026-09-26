@@ -5,6 +5,7 @@ use ragu_core::{
     pasta::{Ep, Eq, Fp, Fq},
 };
 use rand::{SeedableRng as _, rngs::StdRng};
+use udon::curve::Projective;
 
 use crate::{
     Application, ApplicationBuilder, Header, Index, PROOF_SIZE_COMPRESSED, Pcd, Proof, Step,
@@ -731,7 +732,7 @@ fn header_with_point_round_trips() {
     let app = point_app();
 
     let (pcd, ()) = app
-        .seed(&mut rng, PointSeedStep, Eq::GENERATOR)
+        .seed(&mut rng, PointSeedStep, Eq::generator())
         .expect("seed with a non-identity point");
     assert!(app.verify(&pcd, &mut rng).expect("verify"));
 }
@@ -743,7 +744,7 @@ fn identity_point_in_output_header_fails_fuse() {
 
     assert!(
         matches!(
-            app.seed(&mut rng, PointSeedStep, Eq::IDENTITY),
+            app.seed(&mut rng, PointSeedStep, Eq::identity()),
             Err(Error::InvalidWitness(_))
         ),
         "identity point in output header must fail"
@@ -762,7 +763,7 @@ fn identity_point_in_input_header_fails_fuse() {
         .expect("finalize");
 
     let bad_left = Proof::trivial().carry::<PointHeader>(PointHeaderData {
-        commitment: Eq::IDENTITY,
+        commitment: Eq::identity(),
     });
     let right = Proof::trivial().carry::<()>(());
 
@@ -781,10 +782,10 @@ fn identity_point_in_carried_data_errors_verify() {
     let app = point_app();
 
     let (pcd, ()) = app
-        .seed(&mut rng, PointSeedStep, Eq::GENERATOR)
+        .seed(&mut rng, PointSeedStep, Eq::generator())
         .expect("seed with a non-identity point");
     let bad_pcd = pcd.proof.carry::<PointHeader>(PointHeaderData {
-        commitment: Eq::IDENTITY,
+        commitment: Eq::identity(),
     });
 
     // Errs rather than returning `Ok(false)`: re-encoding such a header

@@ -2,7 +2,7 @@
 //! representation by comparing their canonical coordinates with the original.
 
 use ragu_core::{Cycle, FixedGenerators, pasta::Pasta};
-use udon::{curve::Affine, field::PrimeField as Field};
+use udon::{curve::Affine, field::Field};
 
 #[test]
 fn baked_points_match_original_parameters() {

@@ -16,11 +16,9 @@ use ragu_circuits::{
     registry::{CircuitIndex, Registry, RegistryAt},
 };
 use ragu_core::FixedGenerators;
-use udon::{
-    curve::Affine,
-    field::{DeferredField, FftField, Field},
-};
+use udon::{curve::Affine, field::Field};
 
+// TODO: Ragu's MSM and FFT don't use Udon's scratch-buffer APIs.
 /// A statically dispatched implementation of Ragu's computational operations.
 ///
 /// Every method has a correctness-first default. Implementations may override
@@ -49,7 +47,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     /// # Correctness
     ///
     /// Overrides must match [`sparse::Polynomial::revdot`] exactly.
-    fn sparse_revdot<F: DeferredField, R: Rank>(
+    fn sparse_revdot<F: Field, R: Rank>(
         lhs: &sparse::Polynomial<F, R>,
         rhs: &sparse::Polynomial<F, R>,
     ) -> F {
@@ -92,7 +90,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the registry restriction $m(W, x, y)$.
-    fn registry_xy<F: FftField + DeferredField, R: Rank>(
+    fn registry_xy<F: Field, R: Rank>(
         registry: &Registry<'_, F, R>,
         x: F,
         y: F,
@@ -101,7 +99,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the circuit restriction $s_i(X, y)$ selected by `circuit`.
-    fn registry_circuit_y<F: FftField + DeferredField, R: Rank>(
+    fn registry_circuit_y<F: Field, R: Rank>(
         registry: &Registry<'_, F, R>,
         circuit: CircuitIndex,
         y: F,
@@ -110,7 +108,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the registry restriction $m(w, x, Y)$.
-    fn registry_at_x<F: FftField + DeferredField, R: Rank>(
+    fn registry_at_x<F: Field, R: Rank>(
         registry: &RegistryAt<'_, F, R>,
         x: F,
     ) -> sparse::Polynomial<F, R> {
@@ -118,7 +116,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the registry restriction $m(w, X, y)$.
-    fn registry_at_y<F: FftField + DeferredField, R: Rank>(
+    fn registry_at_y<F: Field, R: Rank>(
         registry: &RegistryAt<'_, F, R>,
         y: F,
     ) -> sparse::Polynomial<F, R> {
@@ -126,12 +124,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Evaluates the registry polynomial at $(w, x, y)$.
-    fn registry_wxy<F: FftField + DeferredField, R: Rank>(
-        registry: &Registry<'_, F, R>,
-        w: F,
-        x: F,
-        y: F,
-    ) -> F {
+    fn registry_wxy<F: Field, R: Rank>(registry: &Registry<'_, F, R>, w: F, x: F, y: F) -> F {
         registry.wxy(w, x, y)
     }
 

@@ -15,7 +15,7 @@ use ragu_core::{
     drivers::{DirectSum, Driver, DriverTypes},
     maybe::Empty,
 };
-use udon::field::{DeferredField, FftField};
+use udon::field::Field;
 
 #[cfg(test)]
 use crate::expr::{Expr, Op};
@@ -45,7 +45,7 @@ struct ChallengeContext {
 }
 
 impl ChallengeContext {
-    fn new<F: FftField>(seed: [u8; 32], instance: &str, point: usize) -> Self {
+    fn new<F: Field>(seed: [u8; 32], instance: &str, point: usize) -> Self {
         Self {
             seed,
             modulus_le: modulus_le::<F>(),
@@ -55,7 +55,7 @@ impl ChallengeContext {
     }
 
     /// Domain-separated 512-bit little-endian integer reduced into `F`.
-    fn base<F: FftField>(&self, label: &str) -> F {
+    fn base<F: Field>(&self, label: &str) -> F {
         let mut wide = [0u8; 64];
         for block in 0..2 {
             let mut preimage = Vec::new();
@@ -86,7 +86,7 @@ struct ChallengeBases<F> {
     output_weight: F,
 }
 
-impl<F: FftField> ChallengeBases<F> {
+impl<F: Field> ChallengeBases<F> {
     fn new(ctx: &ChallengeContext) -> Self {
         Self {
             input: ctx.base("input"),
@@ -103,7 +103,7 @@ impl<F: FftField> ChallengeBases<F> {
     }
 }
 
-fn sequence<F: FftField>(base: F, index: usize) -> F {
+fn sequence<F: Field>(base: F, index: usize) -> F {
     base.pow_u64((index as u64) + 1)
 }
 
@@ -112,7 +112,7 @@ fn push_len_prefixed(buf: &mut Vec<u8>, bytes: &[u8]) {
     buf.extend_from_slice(bytes);
 }
 
-fn modulus_le<F: FftField>() -> [u8; 32] {
+fn modulus_le<F: Field>() -> [u8; 32] {
     let hex = modulus_hex::<F>();
     assert_eq!(hex.len(), 64, "expected a 256-bit modulus");
     let mut bytes = [0u8; 32];
@@ -122,7 +122,7 @@ fn modulus_le<F: FftField>() -> [u8; 32] {
     bytes
 }
 
-fn field_hex<F: FftField>(value: F) -> String {
+fn field_hex<F: Field>(value: F) -> String {
     value
         .to_bytes()
         .as_ref()
@@ -225,7 +225,7 @@ pub struct ExtraWire<F> {
 }
 
 /// `Driver` that directly evaluates the complete four-slot gate relation.
-pub struct EvaluationDriver<F: FftField> {
+pub struct EvaluationDriver<F: Field> {
     challenges: ChallengeContext,
     bases: ChallengeBases<F>,
     next_input: usize,
@@ -237,7 +237,7 @@ pub struct EvaluationDriver<F: FftField> {
     extra_accumulator: F,
 }
 
-impl<F: FftField> EvaluationDriver<F> {
+impl<F: Field> EvaluationDriver<F> {
     pub fn new(seed: [u8; 32], instance: &str, point: usize) -> Self {
         let challenges = ChallengeContext::new::<F>(seed, instance, point);
         let bases = ChallengeBases::new(&challenges);
@@ -288,7 +288,7 @@ impl<F: FftField> EvaluationDriver<F> {
     }
 }
 
-impl<F: FftField + DeferredField> DriverTypes for EvaluationDriver<F> {
+impl<F: Field> DriverTypes for EvaluationDriver<F> {
     type ImplField = F;
     type ImplWire = F;
     type MaybeKind = Empty;
@@ -323,7 +323,7 @@ impl<F: FftField + DeferredField> DriverTypes for EvaluationDriver<F> {
     }
 }
 
-impl<'dr, F: FftField + DeferredField> Driver<'dr> for EvaluationDriver<F> {
+impl<'dr, F: Field> Driver<'dr> for EvaluationDriver<F> {
     type F = F;
     type Wire = F;
 
@@ -346,7 +346,7 @@ impl<'dr, F: FftField + DeferredField> Driver<'dr> for EvaluationDriver<F> {
     }
 }
 
-impl<'dr, F: FftField + DeferredField> InstanceDriver<'dr> for EvaluationDriver<F> {
+impl<'dr, F: Field> InstanceDriver<'dr> for EvaluationDriver<F> {
     fn alloc_input_wires(&mut self, n: usize) -> Vec<F> {
         let start = self.next_input;
         self.next_input += n;
@@ -357,7 +357,7 @@ impl<'dr, F: FftField + DeferredField> InstanceDriver<'dr> for EvaluationDriver<
 }
 
 #[cfg(test)]
-fn evaluate_expr<F: FftField>(
+fn evaluate_expr<F: Field>(
     expr: &Expr<F>,
     bases: &ChallengeBases<F>,
     input_count: usize,
@@ -395,7 +395,7 @@ fn evaluate_expr<F: FftField>(
 }
 
 #[cfg(test)]
-fn evaluate_shared<F: FftField>(
+fn evaluate_shared<F: Field>(
     expr: &Arc<Expr<F>>,
     bases: &ChallengeBases<F>,
     input_count: usize,
@@ -418,7 +418,7 @@ fn evaluate_shared<F: FftField>(
 /// production `D` slot and `C * D` relation, and treats later assertions as
 /// linear constraints exactly as the Lean evaluator does.
 #[cfg(test)]
-pub fn evaluate_extracted_trace<F: FftField>(
+pub fn evaluate_extracted_trace<F: Field>(
     instance: &str,
     seed: [u8; 32],
     points: usize,
@@ -531,7 +531,7 @@ pub fn parse_seed(hex: &str) -> core::result::Result<[u8; 32], String> {
 }
 
 /// The field modulus as 64 lowercase hex digits, most significant first.
-fn modulus_hex<F: FftField>() -> String {
+fn modulus_hex<F: Field>() -> String {
     F::MODULUS
         .as_ref()
         .iter()

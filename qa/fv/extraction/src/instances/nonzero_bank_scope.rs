@@ -1,5 +1,6 @@
 use ragu_core::pasta::Fp;
 use ragu_primitives::{Element, NonzeroBank};
+use udon::field::Field;
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireDeserializer};
 

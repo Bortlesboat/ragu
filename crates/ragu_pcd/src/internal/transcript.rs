@@ -42,7 +42,7 @@ use ragu_primitives::{
     io::Buffer,
     poseidon::{SaveError, Sponge, SpongeState},
 };
-use udon::field::{FftField, Field};
+use udon::field::Field;
 
 /// Transcript wrapper around Poseidon [`Sponge`] for Fiat-Shamir transforms.
 pub struct Transcript<'dr, D: Driver<'dr>, P: PoseidonPermutation<D::F>> {
@@ -79,10 +79,7 @@ impl<'dr, D: Driver<'dr>, P: PoseidonPermutation<D::F>> Transcript<'dr, D, P> {
     ///
     /// [#51]: https://github.com/tachyon-zcash/ragu/issues/51
     /// [#1]: https://github.com/tachyon-zcash/ragu/issues/1
-    pub fn new(dr: &mut D, params: &'dr P, tag: &[u8]) -> Result<Self>
-    where
-        D::F: FftField,
-    {
+    pub fn new(dr: &mut D, params: &'dr P, tag: &[u8]) -> Result<Self> {
         let mut sponge = Sponge::new(dr, params);
 
         // prefix with the tag length

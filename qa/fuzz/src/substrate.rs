@@ -43,7 +43,7 @@
 //! [`Driver`]: ragu_core::drivers::Driver
 
 use proptest::{prelude::*, sample::select, strategy::BoxedStrategy};
-use udon::field::FftField;
+use udon::field::Field;
 
 mod circuit;
 #[cfg(test)]
@@ -418,7 +418,7 @@ impl Preamble {
     pub const LEN: usize = 4 + 2 + 2;
 
     /// The initial element values, in stack order.
-    pub fn values<F: FftField>(&self) -> [F; Self::LEN] {
+    pub fn values<F: Field>(&self) -> [F; Self::LEN] {
         let mut out = [F::ZERO; Self::LEN];
         let mut i = 0;
         for seed in self.seeds {
@@ -668,7 +668,7 @@ impl Program {
 ///
 /// The 16-variant superset used by the robustness targets (the patcher
 /// family previously used an 8-variant subset).
-pub fn special_value<F: FftField>(idx: u8) -> F {
+pub fn special_value<F: Field>(idx: u8) -> F {
     match idx % 16 {
         0 => F::ZERO,
         1 => F::ONE,

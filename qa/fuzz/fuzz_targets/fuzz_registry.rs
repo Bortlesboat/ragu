@@ -74,7 +74,7 @@ use ragu_testing_fuzz::{
     substrate::{Limits, OpSet, Overrides, Program, ProgramCircuit, shadow_eval, steer},
     with_rank,
 };
-use udon::field::PrimeField as Field;
+use udon::field::Field;
 
 /// Registering a circuit synthesizes it, so the count is what sets this
 /// target's cost per input. Six is enough to cross a power-of-two domain

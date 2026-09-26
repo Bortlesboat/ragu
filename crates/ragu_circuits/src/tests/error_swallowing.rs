@@ -21,6 +21,7 @@ use ragu_core::{
     routines::{Prediction, Routine},
 };
 use ragu_primitives::{Element, allocator::Standard};
+use udon::field::Field;
 
 use crate::{
     Circuit, CircuitExt, WithAux, floor_planner, into_wiring_object, polynomials::TestRank,

@@ -1,5 +1,6 @@
 use ragu_core::pasta::{EpAffine, EqAffine, Fp, Fq};
 use ragu_primitives::{Point, consistent::Consistent};
+use udon::curve::Affine;
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireDeserializer};
 
@@ -20,7 +21,7 @@ impl CircuitInstance for PointConsistentInstanceFp {
         D: InstanceDriver<'dr, F = Fp>,
     {
         let point_wires = dr.alloc_input_wires(2);
-        let point_template = Point::constant(dr, EpAffine::GENERATOR)?;
+        let point_template = Point::constant(dr, EpAffine::generator())?;
         let point = WireDeserializer::new(point_wires).into_gadget(&point_template)?;
 
         point.enforce_consistent(dr)?;
@@ -40,7 +41,7 @@ impl CircuitInstance for PointConsistentInstanceFq {
         D: InstanceDriver<'dr, F = Fq>,
     {
         let point_wires = dr.alloc_input_wires(2);
-        let point_template = Point::constant(dr, EqAffine::GENERATOR)?;
+        let point_template = Point::constant(dr, EqAffine::generator())?;
         let point = WireDeserializer::new(point_wires).into_gadget(&point_template)?;
 
         point.enforce_consistent(dr)?;

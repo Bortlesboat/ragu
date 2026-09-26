@@ -165,7 +165,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
     ) -> Result<()> {
         let rx =
             native::stages::outer_error::Stage::<C, R, HEADER_SIZE, native::RevdotParameters>::rx(
-                udon::field::random::<C::CircuitField>(|bytes| rng.fill_bytes(bytes)),
+                C::CircuitField::random(|bytes| rng.fill_bytes(bytes)),
                 outer_error_witness,
             )?;
 

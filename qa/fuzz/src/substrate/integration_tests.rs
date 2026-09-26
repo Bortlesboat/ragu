@@ -25,6 +25,7 @@ use ragu_primitives::{Simulator, allocator::Standard};
 use ragu_testing::patcher::{
     Recorder, TrackingAllocator, allocation_waste, constraints_hold, discover_free_advice,
 };
+use udon::field::Field;
 
 use super::{
     Capabilities, Limits, Op, OpSet, Overrides, Program, ProgramCircuit, native_satisfied,

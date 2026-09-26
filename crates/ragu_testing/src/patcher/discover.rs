@@ -55,7 +55,7 @@
 //!   substrate by an exactness proptest there (discovery must equal the
 //!   substrate's own allocation list on anchorless programs).
 
-use udon::field::{FftField, Field};
+use udon::field::Field;
 
 use super::recorder::{Event, Recorder, deduce, deduce_by_cases};
 
@@ -142,7 +142,7 @@ pub fn allocation_waste<F: Field>(events: &[Event<F>], values: &[F]) -> Vec<(usi
 /// The converse carries the usual solver caveat: a wire *is* forced when the
 /// bounded solver can reach it, so one pinned only through a coupled cluster
 /// wider than its cap is reported unforced even though it is determined.
-pub fn forced_by<F: FftField>(events: &[Event<F>], values: &[F], inputs: &[usize]) -> Vec<usize> {
+pub fn forced_by<F: Field>(events: &[Event<F>], values: &[F], inputs: &[usize]) -> Vec<usize> {
     let mut scratch = values.to_vec();
     let mut known = vec![false; scratch.len()];
     known[Recorder::<F>::ONE] = true;

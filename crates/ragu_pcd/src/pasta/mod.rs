@@ -23,6 +23,7 @@ pub use baked::baked;
 #[cfg(all(test, feature = "baked"))]
 mod tests {
     use ragu_core::{Cycle, FixedGenerators};
+    use udon::curve::Affine;
 
     use super::*;
 

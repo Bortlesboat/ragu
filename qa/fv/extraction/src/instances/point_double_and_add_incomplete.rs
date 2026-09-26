@@ -1,5 +1,6 @@
 use ragu_core::pasta::{EpAffine, Fp};
 use ragu_primitives::{NonzeroBank, Point};
+use udon::curve::Affine;
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireCollector, WireDeserializer};
 
@@ -15,7 +16,7 @@ impl CircuitInstance for PointDoubleAndAddIncompleteInstance {
         let input_wires_self = dr.alloc_input_wires(2);
         let input_wires_other = dr.alloc_input_wires(2);
 
-        let template = Point::constant(dr, EpAffine::GENERATOR)?;
+        let template = Point::constant(dr, EpAffine::generator())?;
         let self_p = WireDeserializer::new(input_wires_self).into_gadget(&template)?;
         let other = WireDeserializer::new(input_wires_other).into_gadget(&template)?;
 

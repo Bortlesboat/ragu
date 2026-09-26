@@ -7,6 +7,7 @@ use ragu_core::{
 use ragu_pcd::ApplicationBuilder;
 use ragu_testing::pcd::nontrivial;
 use rand::{Rng, SeedableRng, rngs::StdRng};
+use udon::field::Field;
 
 fn registry_bench(c: &mut Criterion) {
     let pasta = ragu_pcd::pasta::baked();
@@ -35,9 +36,9 @@ fn registry_bench(c: &mut Criterion) {
 
     // Use deterministic "random" field elements.
     let mut rng = StdRng::seed_from_u64(0xdead);
-    let w = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-    let x = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
-    let y = udon::field::random::<Fp>(|bytes| rng.fill_bytes(bytes));
+    let w = Fp::random(|bytes| rng.fill_bytes(bytes));
+    let x = Fp::random(|bytes| rng.fill_bytes(bytes));
+    let y = Fp::random(|bytes| rng.fill_bytes(bytes));
 
     c.bench_function("registry::wx", |b| {
         b.iter(|| registry.wx(w, x));

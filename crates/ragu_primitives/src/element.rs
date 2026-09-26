@@ -633,12 +633,15 @@ mod tests {
     // (omega, k, should_pass)
     fn test_cases() -> Vec<(Fp, u32, bool)> {
         // 2^32 primitive roots of unity
-        let root_of_unity1 =
-            fp_hex!("0x2bce74deac30ebda362120830561f81aea322bf2b7bb7584bdad6fabd87ea32f");
-        let root_of_unity2 =
-            fp_hex!("0x16d296aa2b2fb60c7f2cf0bd729140e59875893be132b539a16988b46a2131f1");
-        let root_of_unity3 =
-            fp_hex!("0x0e16194e05e127fc65f98157c0a42b1c050cd2c5dd8b481c9d9e9fd0a13ee1c9");
+        let root_of_unity1 = Fp::new(fp_hex!(
+            "0x2bce74deac30ebda362120830561f81aea322bf2b7bb7584bdad6fabd87ea32f"
+        ));
+        let root_of_unity2 = Fp::new(fp_hex!(
+            "0x16d296aa2b2fb60c7f2cf0bd729140e59875893be132b539a16988b46a2131f1"
+        ));
+        let root_of_unity3 = Fp::new(fp_hex!(
+            "0x0e16194e05e127fc65f98157c0a42b1c050cd2c5dd8b481c9d9e9fd0a13ee1c9"
+        ));
 
         vec![
             // 1 is a 2^0 root of unity (1^1 = 1)

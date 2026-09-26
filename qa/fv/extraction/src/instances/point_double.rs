@@ -1,5 +1,6 @@
 use ragu_core::pasta::{EpAffine, Fp};
 use ragu_primitives::Point;
+use udon::curve::Affine;
 
 use crate::instance::{CircuitInstance, InstanceDriver, WireCollector, WireDeserializer};
 
@@ -16,7 +17,7 @@ impl CircuitInstance for PointDoubleInstance {
 
         // Reuse a constant point as a structural template, then substitute the
         // raw input wires into its `[x, y]` gadget fields.
-        let template = Point::constant(dr, EpAffine::GENERATOR)?;
+        let template = Point::constant(dr, EpAffine::generator())?;
         let input_point = WireDeserializer::new(input_wires).into_gadget(&template)?;
 
         let doubled_point = input_point.double(dr)?;

@@ -55,17 +55,17 @@ pub mod pasta {
         poseidon::{PoseidonFp, PoseidonFq},
     };
 
-    /// The Pallas base field, in Udon's loose representation.
-    pub type Fp = udon::field::Fp;
-    /// The Pallas scalar field, in Udon's loose representation.
-    pub type Fq = udon::field::Fq;
+    /// The Pallas base field, through Udon's consumer field adapter.
+    pub type Fp = udon::field::FieldAdapter<udon::field::PallasBase>;
+    /// The Pallas scalar field, through Udon's consumer field adapter.
+    pub type Fq = udon::field::FieldAdapter<udon::field::PallasScalar>;
 
     /// Pallas in projective coordinates.
-    pub type Ep = udon::curve::PallasProjective;
+    pub type Ep = udon::curve::ProjectiveAdapter<udon::curve::Pallas>;
     /// Pallas in affine coordinates, including identity.
-    pub type EpAffine = udon::curve::PallasPoint;
+    pub type EpAffine = udon::curve::AffineAdapter<udon::curve::Pallas>;
     /// Vesta in projective coordinates.
-    pub type Eq = udon::curve::VestaProjective;
+    pub type Eq = udon::curve::ProjectiveAdapter<udon::curve::Vesta>;
     /// Vesta in affine coordinates, including identity.
-    pub type EqAffine = udon::curve::VestaPoint;
+    pub type EqAffine = udon::curve::AffineAdapter<udon::curve::Vesta>;
 }

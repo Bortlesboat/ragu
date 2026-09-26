@@ -2,7 +2,7 @@
 
 use proptest::{prelude::*, sample::select, strategy::BoxedStrategy};
 use ragu_core::Coeff;
-use udon::field::FftField;
+use udon::field::Field;
 
 /// Generates edge-biased and arbitrary `u64` values.
 pub fn edge_u64() -> impl Strategy<Value = u64> + Clone {
@@ -69,7 +69,7 @@ pub fn bounded_edge_usize(max_inclusive: usize) -> BoxedStrategy<usize> {
 
 fn edge_field_element<F>() -> impl Strategy<Value = F> + Clone
 where
-    F: FftField + From<u64> + 'static,
+    F: Field + From<u64> + 'static,
 {
     prop_oneof![
         Just(F::ZERO),
@@ -86,7 +86,7 @@ where
 /// Generates field elements with mixed edge-biased and broad coverage.
 pub fn prime_field_element<F>() -> BoxedStrategy<F>
 where
-    F: FftField + From<u64> + 'static,
+    F: Field + From<u64> + 'static,
 {
     prop_oneof![
         6 => edge_field_element(),
@@ -101,7 +101,7 @@ where
 /// Generates non-zero field elements with mixed edge-biased and broad coverage.
 pub fn nonzero_prime_field_element<F>() -> BoxedStrategy<F>
 where
-    F: FftField + From<u64> + 'static,
+    F: Field + From<u64> + 'static,
 {
     prime_field_element::<F>()
         .prop_filter("non-zero field element", |value| !value.is_zero())
@@ -111,7 +111,7 @@ where
 /// Generates all coefficient variants, including arbitrary field elements.
 pub fn coeff<F>() -> BoxedStrategy<Coeff<F>>
 where
-    F: FftField + From<u64> + 'static,
+    F: Field + From<u64> + 'static,
 {
     prop_oneof![
         Just(Coeff::Zero),
@@ -127,7 +127,7 @@ where
 /// Generates root multisets that exercise boundary sizes, repeated roots, and roots of unity.
 pub fn poly_with_roots<F>() -> BoxedStrategy<Vec<F>>
 where
-    F: FftField + From<u64> + 'static,
+    F: Field + From<u64> + 'static,
 {
     let w = F::domain(6).expect("supported test domain").root();
 

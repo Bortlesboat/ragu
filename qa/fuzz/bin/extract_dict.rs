@@ -18,7 +18,7 @@ use ragu_core::{
     PoseidonPermutation,
     pasta::{Fp, Fq, PoseidonFp, PoseidonFq},
 };
-use udon::field::FftField;
+use udon::field::Field;
 
 /// Print an `Fp` (or `Fq`) value as a libFuzzer dictionary entry.
 fn emit_repr(label: &str, idx: usize, bytes: &[u8]) {

@@ -40,7 +40,7 @@
 //!   richer harness on top of [`determinism_probe`] (the fuzz target's
 //!   mutation vocabulary is the model).
 
-use udon::field::{FftField, Field};
+use udon::field::Field;
 
 use super::{
     discover::discover_free_advice,
@@ -186,7 +186,7 @@ pub struct Prepared<F> {
     events_of: Vec<Vec<usize>>,
 }
 
-impl<F: FftField> Prepared<F> {
+impl<F: Field> Prepared<F> {
     /// Prepares `events` at the satisfying witness `honest` for probes that
     /// pin `inputs` and watch `outputs`.
     pub fn new(

@@ -83,7 +83,7 @@ use ragu_core::{
     maybe::Empty,
     routines::Routine,
 };
-use udon::field::Field;
+use udon::field::DeferredField;
 
 use crate::{
     DriverScope,
@@ -117,7 +117,7 @@ struct SxScope<F> {
 ///
 /// [`Driver`]: ragu_core::drivers::Driver
 /// [`Driver::enforce_zero`]: ragu_core::drivers::Driver::enforce_zero
-struct Evaluator<'fp, F: Field, R: Rank> {
+struct Evaluator<'fp, F: DeferredField, R: Rank> {
     /// Accumulated polynomial coefficients, built in reverse emission order.
     ///
     /// Each [`enforce_zero`](Driver::enforce_zero) call appends one
@@ -161,7 +161,7 @@ struct Evaluator<'fp, F: Field, R: Rank> {
     _marker: core::marker::PhantomData<R>,
 }
 
-impl<F: Field, R: Rank> DriverScope<SxScope<F>> for Evaluator<'_, F, R> {
+impl<F: DeferredField, R: Rank> DriverScope<SxScope<F>> for Evaluator<'_, F, R> {
     fn scope(&mut self) -> &mut SxScope<F> {
         &mut self.scope
     }
@@ -174,7 +174,7 @@ impl<F: Field, R: Rank> DriverScope<SxScope<F>> for Evaluator<'_, F, R> {
 /// - `LCadd` / `LCenforce`: Use [`DirectSum`] to accumulate linear combinations
 ///   as immediate field element sums.
 /// - `ImplWire`: Wires are represented directly as evaluated monomials in $F$.
-impl<F: Field, R: Rank> DriverTypes for Evaluator<'_, F, R> {
+impl<F: DeferredField, R: Rank> DriverTypes for Evaluator<'_, F, R> {
     type MaybeKind = Empty;
     type LCadd = DirectSum<F>;
     type LCenforce = DirectSum<F>;
@@ -226,7 +226,7 @@ impl<F: Field, R: Rank> DriverTypes for Evaluator<'_, F, R> {
     }
 }
 
-impl<'dr, F: Field, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
+impl<'dr, F: DeferredField, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
     type F = F;
     type Wire = F;
 
@@ -319,7 +319,7 @@ impl<'dr, F: Field, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
 /// - `x`: The evaluation point for the $X$ variable.
 /// - `floor_plan`: Per-segment absolute offsets, computed by
 ///   [`floor_plan()`](crate::floor_planner::floor_plan).
-pub fn eval<F: Field, RC: RawCircuit<F>, R: Rank>(
+pub fn eval<F: DeferredField, RC: RawCircuit<F>, R: Rank>(
     circuit: &RC,
     x: F,
     floor_plan: &[ConstraintSegment],

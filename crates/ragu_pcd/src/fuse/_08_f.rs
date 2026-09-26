@@ -18,6 +18,7 @@ use ragu_circuits::{
 use ragu_core::{Cycle, Result, drivers::Driver, maybe::Maybe};
 use ragu_primitives::Element;
 use rand::CryptoRng;
+use udon::field::Field;
 
 use super::{NativeF, NativeSPrime, RegistryWy};
 use crate::{
@@ -203,7 +204,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize, B: crate::SelectableBackend>
         for val in first.by_ref() {
             let c = rest
                 .iter_mut()
-                .fold(val, |acc, iter| alpha * acc + iter.next().unwrap());
+                .fold(val, |acc, iter| acc.mul_add(&alpha, &iter.next().unwrap()));
             coeffs.push(c);
         }
         coeffs.reverse();

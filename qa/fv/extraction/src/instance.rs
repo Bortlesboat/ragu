@@ -5,7 +5,7 @@ use ragu_core::{
     drivers::{Driver, DriverTypes},
     gadgets::Gadget,
 };
-use udon::field::FftField;
+use udon::field::{DeferredField, FftField};
 
 use crate::{
     driver::ExtractionDriver,
@@ -111,7 +111,7 @@ pub struct ExtractedTrace<F: FftField> {
 
 /// One concrete invocation of a deployed gadget enrolled in FV.
 pub trait CircuitInstance {
-    type Field: FftField + FftField;
+    type Field: FftField + DeferredField;
 
     /// Run the real gadget code on any FV driver and serialize its outputs.
     fn circuit<'dr, D>(dr: &mut D) -> ragu_core::Result<Vec<D::Wire>>

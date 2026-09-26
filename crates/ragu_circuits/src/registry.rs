@@ -59,7 +59,7 @@ use blake2b_simd::Params;
 use ragu_core::{Error, Result};
 use udon::{
     fft::{Domain, bit_reverse},
-    field::{FftField, Field},
+    field::{DeferredField, FftField, Field},
 };
 
 use crate::{
@@ -129,13 +129,13 @@ pub struct RegistryBuilder<'params, F: FftField, R: Rank> {
     application_steps: Vec<Box<dyn WiringObject<F, R> + 'params>>,
 }
 
-impl<F: FftField, R: Rank> Default for RegistryBuilder<'_, F, R> {
+impl<F: FftField + DeferredField, R: Rank> Default for RegistryBuilder<'_, F, R> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<'params, F: FftField, R: Rank> RegistryBuilder<'params, F, R> {
+impl<'params, F: FftField + DeferredField, R: Rank> RegistryBuilder<'params, F, R> {
     /// Creates a new empty [`Registry`] builder.
     pub fn new() -> Self {
         Self {
@@ -381,7 +381,7 @@ pub struct RegistryAt<'a, F: FftField, R: Rank> {
     mask_coeff_sum: F,
 }
 
-impl<F: FftField, R: Rank> Registry<'_, F, R> {
+impl<F: FftField + DeferredField, R: Rank> Registry<'_, F, R> {
     /// Assembles a [`Trace`](crate::Trace) into a [`sparse::Polynomial`] using
     /// the floor plan for the specified circuit.
     ///
@@ -674,7 +674,7 @@ impl<F: FftField, R: Rank> Registry<'_, F, R> {
     }
 }
 
-impl<F: FftField, R: Rank> RegistryAt<'_, F, R> {
+impl<F: FftField + DeferredField, R: Rank> RegistryAt<'_, F, R> {
     /// Evaluate the registry polynomial restricted at $W$ and $Y$, unrestricted at $X$.
     pub fn y(&self, y: F) -> sparse::Polynomial<F, R> {
         let mut poly = self.registry.w_cached(
@@ -741,26 +741,28 @@ impl<F: FftField, R: Rank> RegistryAt<'_, F, R> {
 
     /// Evaluate the registry polynomial at the point ($W$, $X$, $Y$).
     pub fn xy(&self, x: F, y: F) -> F {
-        // TODO: use Udon's deferred product accumulation for these weighted
-        // evaluations to share Montgomery reduction across the sum.
-        let mut result: F = self.registry.w_cached(
+        let mut result = self.registry.w_cached(
             &self.cache,
-            || F::ZERO,
+            F::Accumulator::default,
             |circuit, floor_plan, coeff, result| {
-                *result += circuit.sxy(x, y, floor_plan) * coeff;
+                F::mul_accumulate(result, &circuit.sxy(x, y, floor_plan), &coeff);
             },
         );
 
         // Masking polynomials return only -notch; apply the shared global
         // scalar once.
-        result += self.mask_coeff_sum * crate::staging::mask::global_mask::<F, R>(x, y);
+        F::mul_accumulate(
+            &mut result,
+            &self.mask_coeff_sum,
+            &crate::staging::mask::global_mask::<F, R>(x, y),
+        );
 
-        // Add the registry key contribution.
-        result + self.registry.key_sxy(x, y)
+        // Add the registry key contribution after reducing the weighted sum.
+        F::reduce(result) + self.registry.key_sxy(x, y)
     }
 }
 
-impl<F: FftField, R: Rank> Registry<'_, F, R> {
+impl<F: FftField + DeferredField, R: Rank> Registry<'_, F, R> {
     /// Compute a digest of this registry using BLAKE2b.
     fn compute_registry_digest(&self) -> F {
         let mut hasher = Params::new().personal(b"ragu_registry___").to_state();

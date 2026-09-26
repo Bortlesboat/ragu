@@ -54,7 +54,7 @@ use ragu_core::{
     maybe::Empty,
     routines::Routine,
 };
-use udon::field::FftField;
+use udon::field::{DeferredField, FftField};
 
 use super::{Circuit, raw::RawCircuit};
 
@@ -369,7 +369,7 @@ impl<F: Copy + core::ops::MulAssign> ReinitWires<F> {
 /// [`WireMap`] for `Counter`→`Counter`: every source wire is replaced by a
 /// fresh value from this `ReinitWires` sequence. No gates are allocated and
 /// no constraint counts change.
-impl<F: FftField> WireMap<F> for ReinitWires<F> {
+impl<F: FftField + DeferredField> WireMap<F> for ReinitWires<F> {
     type Src = Counter<F>;
     type Dst = Counter<F>;
 
@@ -466,7 +466,7 @@ impl<F: FftField> Counter<F> {
     }
 }
 
-impl<F: FftField> DriverTypes for Counter<F> {
+impl<F: FftField + DeferredField> DriverTypes for Counter<F> {
     type MaybeKind = Empty;
     type ImplField = F;
     type ImplWire = F;
@@ -502,7 +502,7 @@ impl<F: FftField> DriverTypes for Counter<F> {
     }
 }
 
-impl<'dr, F: FftField> Driver<'dr> for Counter<F> {
+impl<'dr, F: FftField + DeferredField> Driver<'dr> for Counter<F> {
     type F = F;
     type Wire = F;
     const ONE: Self::Wire = F::ONE;
@@ -517,8 +517,10 @@ impl<'dr, F: FftField> Driver<'dr> for Counter<F> {
     fn enforce_zero(&mut self, lc: impl Fn(Self::LCenforce) -> Self::LCenforce) -> Result<()> {
         self.num_constraints += 1;
         self.segments[self.scope.current_segment].num_constraints += 1;
-        self.scope.result *= self.y;
-        self.scope.result += lc(DirectSum::default()).value();
+        self.scope.result = self
+            .scope
+            .result
+            .mul_add(&self.y, &lc(DirectSum::default()).value());
         Ok(())
     }
 
@@ -598,12 +600,14 @@ impl<'dr, F: FftField> Driver<'dr> for Counter<F> {
 ///
 /// Propagates any error from the raw orchestration pass used to analyze the
 /// circuit.
-pub fn eval<F: FftField, C: Circuit<F>>(circuit: &C) -> Result<CircuitMetrics> {
+pub fn eval<F: FftField + DeferredField, C: Circuit<F>>(circuit: &C) -> Result<CircuitMetrics> {
     eval_raw(&super::raw::CircuitAdapterRef(circuit))
 }
 
 /// Evaluates the constraint topology of a [`RawCircuit`].
-pub(crate) fn eval_raw<F: FftField, RC: RawCircuit<F>>(circuit: &RC) -> Result<CircuitMetrics> {
+pub(crate) fn eval_raw<F: FftField + DeferredField, RC: RawCircuit<F>>(
+    circuit: &RC,
+) -> Result<CircuitMetrics> {
     let mut collector = Counter::<F>::new();
 
     let result = super::raw::orchestrate(&mut collector, circuit, Empty)?;
@@ -658,7 +662,9 @@ pub(crate) mod tests {
         _marker: PhantomData<Src>,
     }
 
-    impl<F: FftField, Src: DriverTypes<ImplField = F>> WireMap<F> for CounterRemap<'_, F, Src> {
+    impl<F: FftField + DeferredField, Src: DriverTypes<ImplField = F>> WireMap<F>
+        for CounterRemap<'_, F, Src>
+    {
         type Src = Src;
         type Dst = Counter<F>;
 
@@ -684,7 +690,7 @@ pub(crate) mod tests {
         input: &Bound<'dr, D, Ro::Input>,
     ) -> Result<RoutineIdentity>
     where
-        F: FftField,
+        F: FftField + DeferredField,
         D: Driver<'dr, F = F>,
         Ro: Routine<F>,
     {

@@ -13,7 +13,7 @@ use alloc::borrow::Cow;
 
 use ragu_circuits::polynomials::{Rank, sparse};
 use ragu_core::Result;
-use udon::field::FftField;
+use udon::field::{DeferredField, FftField};
 
 use super::{ChildBridgeKind, InternalCircuitIndex, RxIndex};
 use crate::internal::claims::{Builder, Source, sum_polynomials};
@@ -51,7 +51,7 @@ pub trait Processor<Rx> {
     ) -> Result<()>;
 }
 
-impl<'m, 'rx, F: FftField, R: Rank, B: ragu_backend::Backend>
+impl<'m, 'rx, F: FftField + DeferredField, R: Rank, B: ragu_backend::Backend>
     Processor<&'rx sparse::Polynomial<F, R>>
     for Builder<'m, 'rx, Cow<'rx, sparse::Polynomial<F, R>>, F, R, B>
 {

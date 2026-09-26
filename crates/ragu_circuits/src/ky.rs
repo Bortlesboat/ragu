@@ -10,7 +10,7 @@ use ragu_core::{
     maybe::{Always, Maybe, MaybeKind},
 };
 use ragu_primitives::{Element, GadgetExt};
-use udon::field::Field;
+use udon::field::DeferredField;
 
 use super::Circuit;
 
@@ -22,7 +22,11 @@ use super::Circuit;
 /// Propagates any error from allocating the evaluation point, synthesizing the
 /// instance gadget, streaming it into Horner form, or finalizing the
 /// evaluation.
-pub fn eval<F: Field, C: Circuit<F>>(circuit: &C, instance: C::Instance<'_>, y: F) -> Result<F> {
+pub fn eval<F: DeferredField, C: Circuit<F>>(
+    circuit: &C,
+    instance: C::Instance<'_>,
+    y: F,
+) -> Result<F> {
     let mut dr = Emulator::extractor();
     let y_elem = Element::alloc(&mut dr, &mut (), Always::<F>::just(|| y))?;
     let mut ky = crate::horner::Horner::new(&y_elem);

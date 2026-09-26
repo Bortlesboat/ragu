@@ -15,7 +15,7 @@ use ragu_core::{
     drivers::{DirectSum, Driver, DriverTypes},
     maybe::Empty,
 };
-use udon::field::FftField;
+use udon::field::{DeferredField, FftField};
 
 #[cfg(test)]
 use crate::expr::{Expr, Op};
@@ -288,7 +288,7 @@ impl<F: FftField> EvaluationDriver<F> {
     }
 }
 
-impl<F: FftField> DriverTypes for EvaluationDriver<F> {
+impl<F: FftField + DeferredField> DriverTypes for EvaluationDriver<F> {
     type ImplField = F;
     type ImplWire = F;
     type MaybeKind = Empty;
@@ -323,7 +323,7 @@ impl<F: FftField> DriverTypes for EvaluationDriver<F> {
     }
 }
 
-impl<'dr, F: FftField + FftField> Driver<'dr> for EvaluationDriver<F> {
+impl<'dr, F: FftField + DeferredField> Driver<'dr> for EvaluationDriver<F> {
     type F = F;
     type Wire = F;
 
@@ -346,7 +346,7 @@ impl<'dr, F: FftField + FftField> Driver<'dr> for EvaluationDriver<F> {
     }
 }
 
-impl<'dr, F: FftField + FftField> InstanceDriver<'dr> for EvaluationDriver<F> {
+impl<'dr, F: FftField + DeferredField> InstanceDriver<'dr> for EvaluationDriver<F> {
     fn alloc_input_wires(&mut self, n: usize) -> Vec<F> {
         let start = self.next_input;
         self.next_input += n;

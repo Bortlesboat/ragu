@@ -24,7 +24,7 @@ use ragu_circuits::{
     polynomials::{Rank, sparse},
     registry::{CircuitIndex, Registry},
 };
-use udon::field::{FftField, Field};
+use udon::field::{DeferredField, FftField, Field};
 
 /// Sum an iterator of polynomials, borrowing if only one element.
 ///
@@ -93,7 +93,7 @@ pub struct Builder<'m, 'rx, A, F: FftField, R: Rank, B: Backend> {
     backend: PhantomData<B>,
 }
 
-impl<'m, 'rx, A, F: FftField, R: Rank, B: Backend> Builder<'m, 'rx, A, F, R, B>
+impl<'m, 'rx, A, F: FftField + DeferredField, R: Rank, B: Backend> Builder<'m, 'rx, A, F, R, B>
 where
     A: Borrow<sparse::Polynomial<F, R>>,
 {

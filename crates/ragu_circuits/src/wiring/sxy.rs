@@ -55,7 +55,7 @@ use ragu_core::{
     maybe::Empty,
     routines::Routine,
 };
-use udon::field::Field;
+use udon::field::DeferredField;
 
 use crate::{DriverScope, floor_planner::ConstraintSegment, polynomials::Rank, raw::RawCircuit};
 
@@ -132,7 +132,7 @@ struct Evaluator<'fp, F, R> {
     _marker: core::marker::PhantomData<R>,
 }
 
-impl<F: Field, R: Rank> DriverScope<SxyScope<F>> for Evaluator<'_, F, R> {
+impl<F: DeferredField, R: Rank> DriverScope<SxyScope<F>> for Evaluator<'_, F, R> {
     fn scope(&mut self) -> &mut SxyScope<F> {
         &mut self.scope
     }
@@ -145,7 +145,7 @@ impl<F: Field, R: Rank> DriverScope<SxyScope<F>> for Evaluator<'_, F, R> {
 /// - `LCadd` / `LCenforce`: Use [`DirectSum`] to accumulate linear combinations
 ///   as immediate field element sums.
 /// - `ImplWire`: Wires are represented directly as evaluated monomials in $F$.
-impl<F: Field, R: Rank> DriverTypes for Evaluator<'_, F, R> {
+impl<F: DeferredField, R: Rank> DriverTypes for Evaluator<'_, F, R> {
     type MaybeKind = Empty;
     type LCadd = DirectSum<F>;
     type LCenforce = DirectSum<F>;
@@ -197,7 +197,7 @@ impl<F: Field, R: Rank> DriverTypes for Evaluator<'_, F, R> {
     }
 }
 
-impl<'dr, F: Field, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
+impl<'dr, F: DeferredField, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
     type F = F;
     type Wire = F;
 
@@ -231,8 +231,10 @@ impl<'dr, F: Field, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
         }
         self.scope.constraints += 1;
 
-        self.scope.result *= self.y;
-        self.scope.result += lc(DirectSum::default()).value();
+        self.scope.result = self
+            .scope
+            .result
+            .mul_add(&self.y, &lc(DirectSum::default()).value());
 
         Ok(())
     }
@@ -283,7 +285,8 @@ impl<'dr, F: Field, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
         // Position the routine's local Horner result at its absolute Y offset,
         // then combine with any nested child contributions.
         let y_pow_constraint_start = self.y.pow_u64(constraint_start as u64);
-        let routine_contribution = y_pow_constraint_start * self.scope.result + self.scope.sum;
+        let routine_contribution =
+            y_pow_constraint_start.mul_add(&self.scope.result, &self.scope.sum);
         self.scope = saved;
         self.scope.sum += routine_contribution;
 
@@ -302,7 +305,7 @@ impl<'dr, F: Field, R: Rank> Driver<'dr> for Evaluator<'_, F, R> {
 /// - `y`: The evaluation point for the $Y$ variable.
 /// - `floor_plan`: Per-segment absolute offsets, computed by
 ///   [`floor_plan()`](crate::floor_planner::floor_plan).
-pub fn eval<F: Field, RC: RawCircuit<F>, R: Rank>(
+pub fn eval<F: DeferredField, RC: RawCircuit<F>, R: Rank>(
     circuit: &RC,
     x: F,
     y: F,

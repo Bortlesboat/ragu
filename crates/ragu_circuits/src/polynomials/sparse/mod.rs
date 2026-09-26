@@ -384,9 +384,8 @@ impl<F: Field, R: Rank> Polynomial<F, R> {
             if gap > 0 {
                 result *= z.pow_u64(gap as u64);
             }
-            for coeff in data.iter().rev() {
-                result = result * z + *coeff;
-            }
+            result =
+                udon::polynomial::evaluate_iter(data.iter().chain(core::iter::once(&result)), z);
             prev_start = *start;
         }
         if prev_start > 0 {

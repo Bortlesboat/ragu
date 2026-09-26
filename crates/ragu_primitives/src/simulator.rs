@@ -11,24 +11,24 @@ use ragu_core::{
     maybe::{Always, MaybeKind},
     routines::Routine,
 };
-use udon::field::Field;
+use udon::field::DeferredField;
 
 /// A driver that simulates circuit execution, checks constraint satisfaction,
 /// and tracks gate and constraint counts. Primarily used for testing.
 #[derive(Clone)]
-pub struct Simulator<F: Field> {
+pub struct Simulator<F: DeferredField> {
     num_gates: usize,
     num_constraints: usize,
     _marker: core::marker::PhantomData<F>,
 }
 
-impl<F: Field> Default for Simulator<F> {
+impl<F: DeferredField> Default for Simulator<F> {
     fn default() -> Self {
         Simulator::new()
     }
 }
 
-impl<F: Field> Simulator<F> {
+impl<F: DeferredField> Simulator<F> {
     /// Creates a new `Simulator` driver.
     pub fn new() -> Self {
         Simulator {
@@ -72,7 +72,7 @@ impl<F: Field> Simulator<F> {
     }
 }
 
-impl<F: Field> DriverTypes for Simulator<F> {
+impl<F: DeferredField> DriverTypes for Simulator<F> {
     type ImplField = F;
     type ImplWire = F;
     type MaybeKind = Always<()>;
@@ -117,7 +117,7 @@ impl<F: Field> DriverTypes for Simulator<F> {
     }
 }
 
-impl<'dr, F: Field> Driver<'dr> for Simulator<F> {
+impl<'dr, F: DeferredField> Driver<'dr> for Simulator<F> {
     type F = F;
     type Wire = F;
     const ONE: Self::Wire = F::ONE;

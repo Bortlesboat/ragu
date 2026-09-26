@@ -90,7 +90,7 @@ use ragu_primitives::{
     vec::{CollectFixed, Len},
 };
 use rand::CryptoRng;
-use udon::field::Field;
+use udon::field::{DeferredField, Field};
 
 use super::FuseProofSource;
 use crate::{
@@ -270,7 +270,7 @@ pub trait InternalCircuitVisitor<C: Cycle> {
 /// padded with zeros to the two wires per gate the stage reserves: what its
 /// stage polynomial commits to, alpha aside. Runs the stage on the extractor
 /// emulator, as `StageExt::rx` does.
-fn stage_values<'source, F: Field, R: Rank, S: Stage<F, R> + Default>(
+fn stage_values<'source, F: DeferredField, R: Rank, S: Stage<F, R> + Default>(
     witness: S::Witness<'source>,
 ) -> Result<Vec<F>> {
     let mut dr = Emulator::extractor();

@@ -163,7 +163,7 @@ use ragu_primitives::{
     io::Write,
 };
 use rx_driver::RxDriver;
-use udon::field::Field;
+use udon::field::{DeferredField, Field};
 
 use crate::{
     BondingObject, Circuit, WithAux,
@@ -394,7 +394,10 @@ pub trait StageExt<F: Field, R: Rank>: Stage<F, R> {
         &self,
         alpha: F,
         witness: Self::Witness<'_>,
-    ) -> Result<sparse::Polynomial<F, R>> {
+    ) -> Result<sparse::Polynomial<F, R>>
+    where
+        F: DeferredField,
+    {
         let values = {
             let mut dr = Emulator::extractor();
             let out = self.witness(&mut dr, Always::maybe_just(|| witness))?;
@@ -436,6 +439,7 @@ pub trait StageExt<F: Field, R: Rank>: Stage<F, R> {
     fn rx(alpha: F, witness: Self::Witness<'_>) -> Result<sparse::Polynomial<F, R>>
     where
         Self: Default,
+        F: DeferredField,
     {
         Self::default().rx_configured(alpha, witness)
     }

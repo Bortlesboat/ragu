@@ -26,7 +26,7 @@ use ragu_core::{
     drivers::{Driver, DriverTypes, LinearExpression},
     maybe::Empty,
 };
-use udon::field::{FftField, Field};
+use udon::field::{DeferredField, FftField, Field};
 
 use super::{MultiStage, MultiStageCircuit, StageBuilder};
 use crate::{
@@ -80,6 +80,7 @@ where
     pub fn into_bonding_object<'a>(self) -> Result<BondingObject<'a, F, R>>
     where
         Self: 'a,
+        F: DeferredField,
         S: MultiStageCircuit<F, R, Output = ()>,
     {
         // Validate: run constraint emission with a driver that rejects ONE usage
@@ -238,12 +239,18 @@ impl<'a, F: Field, R: Rank> Stripped<'a, F, R> {
 }
 
 impl<F: Field, R: Rank> WiringObject<F, R> for Stripped<'_, F, R> {
-    fn sxy(&self, x: F, y: F, floor_plan: &[ConstraintSegment]) -> F {
+    fn sxy(&self, x: F, y: F, floor_plan: &[ConstraintSegment]) -> F
+    where
+        F: DeferredField,
+    {
         // Remove the ONE wire contribution: 1 at y^0 (d[0] maps to degree 0).
         self.0.sxy(x, y, floor_plan) - F::ONE
     }
 
-    fn sx(&self, x: F, floor_plan: &[ConstraintSegment]) -> sparse::Polynomial<F, R> {
+    fn sx(&self, x: F, floor_plan: &[ConstraintSegment]) -> sparse::Polynomial<F, R>
+    where
+        F: DeferredField,
+    {
         let mut poly = self.0.sx(x, floor_plan);
         // Horner places the last constraint (enforce_one) at y^0 = coeffs[0].
         // TODO: sparse::Polynomial should support subtracting a field element

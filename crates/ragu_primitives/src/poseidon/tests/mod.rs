@@ -8,6 +8,7 @@ use ragu_core::{
     maybe::Maybe,
     pasta::{Fp, PoseidonFp},
 };
+use udon::field::DeferredField;
 
 use self::halo2_vectors::{FP_PERMUTE_VECTORS, FQ_PERMUTE_VECTORS, P128Pow5T3Fp, P128Pow5T3Fq};
 use super::*;
@@ -33,7 +34,7 @@ use crate::allocator::Standard;
 /// produced them, by `qa/params`.
 fn check_permutation_vectors<F, P>(params: &P, vectors: &[([F; 3], [F; 3])]) -> Result<()>
 where
-    F: Field,
+    F: DeferredField,
     P: ragu_core::PoseidonPermutation<F>,
 {
     assert_eq!(P::T, 3, "the vendored vectors are for a width-3 state");

@@ -92,7 +92,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the registry restriction $m(W, x, y)$.
-    fn registry_xy<F: FftField, R: Rank>(
+    fn registry_xy<F: FftField + DeferredField, R: Rank>(
         registry: &Registry<'_, F, R>,
         x: F,
         y: F,
@@ -101,7 +101,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the circuit restriction $s_i(X, y)$ selected by `circuit`.
-    fn registry_circuit_y<F: FftField, R: Rank>(
+    fn registry_circuit_y<F: FftField + DeferredField, R: Rank>(
         registry: &Registry<'_, F, R>,
         circuit: CircuitIndex,
         y: F,
@@ -110,7 +110,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the registry restriction $m(w, x, Y)$.
-    fn registry_at_x<F: FftField, R: Rank>(
+    fn registry_at_x<F: FftField + DeferredField, R: Rank>(
         registry: &RegistryAt<'_, F, R>,
         x: F,
     ) -> sparse::Polynomial<F, R> {
@@ -118,7 +118,7 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Computes the registry restriction $m(w, X, y)$.
-    fn registry_at_y<F: FftField, R: Rank>(
+    fn registry_at_y<F: FftField + DeferredField, R: Rank>(
         registry: &RegistryAt<'_, F, R>,
         y: F,
     ) -> sparse::Polynomial<F, R> {
@@ -126,7 +126,12 @@ pub trait Backend: Clone + Copy + Debug + Default + Send + Sync + 'static {
     }
 
     /// Evaluates the registry polynomial at $(w, x, y)$.
-    fn registry_wxy<F: FftField, R: Rank>(registry: &Registry<'_, F, R>, w: F, x: F, y: F) -> F {
+    fn registry_wxy<F: FftField + DeferredField, R: Rank>(
+        registry: &Registry<'_, F, R>,
+        w: F,
+        x: F,
+        y: F,
+    ) -> F {
         registry.wxy(w, x, y)
     }
 

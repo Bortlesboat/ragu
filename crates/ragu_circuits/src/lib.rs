@@ -50,7 +50,7 @@ use ragu_core::{
     gadgets::Bound,
 };
 use ragu_primitives::io::Write;
-use udon::field::{FftField, Field};
+use udon::field::{DeferredField, FftField, Field};
 
 /// Bundles a primary value with auxiliary data.
 ///
@@ -186,7 +186,10 @@ pub trait CircuitExt<F: Field>: Circuit<F> {
     /// # Errors
     ///
     /// Propagates any error from evaluating the instance polynomial.
-    fn ky(&self, instance: Self::Instance<'_>, y: F) -> Result<F> {
+    fn ky(&self, instance: Self::Instance<'_>, y: F) -> Result<F>
+    where
+        F: DeferredField,
+    {
         ky::eval(self, instance, y)
     }
 }
@@ -203,11 +206,14 @@ impl<F: Field, C: Circuit<F>> CircuitExt<F> for C {}
 /// [`Registry`]: registry::Registry
 pub(crate) trait WiringObject<F: Field, R: Rank>: Send + Sync {
     /// Evaluates the polynomial $s(x, y)$ for some $x, y \in \mathbb{F}$.
-    fn sxy(&self, x: F, y: F, floor_plan: &[floor_planner::ConstraintSegment]) -> F;
+    fn sxy(&self, x: F, y: F, floor_plan: &[floor_planner::ConstraintSegment]) -> F
+    where
+        F: DeferredField;
 
     /// Computes the polynomial restriction $s(x, Y)$ for some $x \in \mathbb{F}$.
-    fn sx(&self, x: F, floor_plan: &[floor_planner::ConstraintSegment])
-    -> sparse::Polynomial<F, R>;
+    fn sx(&self, x: F, floor_plan: &[floor_planner::ConstraintSegment]) -> sparse::Polynomial<F, R>
+    where
+        F: DeferredField;
 
     /// Computes the polynomial restriction $s(X, y)$ for some $y \in \mathbb{F}$.
     fn sy(&self, y: F, floor_plan: &[floor_planner::ConstraintSegment])
@@ -235,7 +241,7 @@ pub(crate) fn into_wiring_object<'a, F, C, R>(
     circuit: C,
 ) -> Result<Box<dyn WiringObject<F, R> + 'a>>
 where
-    F: FftField,
+    F: FftField + DeferredField,
     C: Circuit<F> + 'a,
     R: Rank,
 {
@@ -263,7 +269,7 @@ pub(crate) fn into_raw_wiring_object<'a, F, RC, R>(
     metrics: metrics::CircuitMetrics,
 ) -> Result<Box<dyn WiringObject<F, R> + 'a>>
 where
-    F: Field,
+    F: DeferredField,
     RC: raw::RawCircuit<F> + 'a,
     R: Rank,
 {
@@ -272,7 +278,7 @@ where
         metrics: metrics::CircuitMetrics,
     }
 
-    impl<F: Field, RC: raw::RawCircuit<F>, R: Rank> WiringObject<F, R> for Processed<RC> {
+    impl<F: DeferredField, RC: raw::RawCircuit<F>, R: Rank> WiringObject<F, R> for Processed<RC> {
         fn sxy(&self, x: F, y: F, floor_plan: &[floor_planner::ConstraintSegment]) -> F {
             wiring::sxy::eval::<_, _, R>(&self.circuit, x, y, floor_plan)
                 .expect("should succeed if metrics succeeded")

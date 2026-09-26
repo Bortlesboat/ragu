@@ -36,7 +36,7 @@ use ragu_testing_fuzz::{
     substrate::{Limits, OpSet, Overrides, Program, ProgramCircuit, shadow_eval},
     with_field, with_rank,
 };
-use udon::field::FftField;
+use udon::field::{DeferredField, FftField};
 
 #[derive(arbitrary::Arbitrary, Debug)]
 struct Input {
@@ -72,7 +72,7 @@ fuzz_target!(|input: Input| {
     });
 });
 
-fn run<F: FftField, R: Rank>(program: &Program, input: &Input) {
+fn run<F: FftField + DeferredField, R: Rank>(program: &Program, input: &Input) {
     // Anchor constants are circuit structure; the honest shadow supplies
     // one per `Anchor` op. (Their values do not affect the three-way
     // identity, but a well-formed circuit needs them to register.)

@@ -65,7 +65,7 @@
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 
-use udon::field::Field;
+use udon::field::{DeferredField, Field};
 
 use crate::{
     Result,
@@ -118,11 +118,11 @@ pub trait Mode: sealed::Sealed {
 /// Mode for an [`Emulator`] that tracks wire assignments.
 ///
 /// Wired mode always has witness availability (i.e., `MaybeKind = Always<()>`).
-pub struct Wired<F: Field>(PhantomData<F>);
+pub struct Wired<F: DeferredField>(PhantomData<F>);
 
-impl<F: Field> sealed::Sealed for Wired<F> {}
+impl<F: DeferredField> sealed::Sealed for Wired<F> {}
 
-impl<F: Field> Mode for Wired<F> {
+impl<F: DeferredField> Mode for Wired<F> {
     type MaybeKind = Always<()>;
     type F = F;
     type Wire = F;
@@ -178,7 +178,7 @@ impl<M: MaybeKind, F: Field> Mode for Wireless<M, F> {
 /// whether wire assignments are tracked or not ([`Wired`] vs. [`Wireless`]).
 pub struct Emulator<M: Mode>(PhantomData<M>);
 
-impl<F: Field> Emulator<Wired<F>> {
+impl<F: DeferredField> Emulator<Wired<F>> {
     /// Extract the wires from a gadget produced using a wired [`Emulator`].
     /// This method returns the actual wire assignments if successful.
     ///
@@ -321,7 +321,7 @@ impl<'dr, M: MaybeKind, F: Field> Driver<'dr> for Emulator<Wireless<M, F>> {
     }
 }
 
-impl<'dr, F: Field> Driver<'dr> for Emulator<Wired<F>> {
+impl<'dr, F: DeferredField> Driver<'dr> for Emulator<Wired<F>> {
     type F = F;
     type Wire = F;
     const ONE: Self::Wire = F::ONE;

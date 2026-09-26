@@ -50,22 +50,31 @@ pub use udon::{
 
 /// Udon's Pasta cycle, fields, curves, and Poseidon instances.
 pub mod pasta {
+    use udon::curve::Affine;
     pub use udon::{
         cycle::{PallasGenerators, Pasta, PastaParams, VestaGenerators},
         poseidon::{PoseidonFp, PoseidonFq},
     };
 
-    /// The Pallas base field, through Udon's consumer field adapter.
-    pub type Fp = udon::field::FieldAdapter<udon::field::PallasBase>;
-    /// The Pallas scalar field, through Udon's consumer field adapter.
-    pub type Fq = udon::field::FieldAdapter<udon::field::PallasScalar>;
+    use crate::Cycle;
+
+    /// The Pallas base field: the Pasta cycle's circuit field.
+    pub type Fp = <Pasta as Cycle>::CircuitField;
+
+    /// The Pallas scalar field: the Pasta cycle's scalar field.
+    pub type Fq = <Pasta as Cycle>::ScalarField;
 
     /// Pallas in projective coordinates.
-    pub type Ep = udon::curve::ProjectiveAdapter<udon::curve::Pallas>;
-    /// Pallas in affine coordinates, including identity.
-    pub type EpAffine = udon::curve::AffineAdapter<udon::curve::Pallas>;
+    pub type Ep = <EpAffine as Affine>::Projective;
+
+    /// Pallas in affine coordinates, including identity: the Pasta cycle's
+    /// nested curve.
+    pub type EpAffine = <Pasta as Cycle>::NestedCurve;
+
     /// Vesta in projective coordinates.
-    pub type Eq = udon::curve::ProjectiveAdapter<udon::curve::Vesta>;
-    /// Vesta in affine coordinates, including identity.
-    pub type EqAffine = udon::curve::AffineAdapter<udon::curve::Vesta>;
+    pub type Eq = <EqAffine as Affine>::Projective;
+
+    /// Vesta in affine coordinates, including identity: the Pasta cycle's host
+    /// curve.
+    pub type EqAffine = <Pasta as Cycle>::HostCurve;
 }

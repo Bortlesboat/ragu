@@ -94,8 +94,8 @@ order to avoid extra permutations.
 Output and scratch are caller-supplied `&mut [F]` buffers, allowing their
 storage to be reused across multiplications.
 
-[`udon`]: https://github.com/tachyon-zcash/udon/tree/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon
-[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/polynomial/evaluation.rs
-[`dot`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/field/products.rs
-[`dot_iter`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/field/products.rs
-[`multiply`]: https://github.com/tachyon-zcash/udon/blob/dea665b207bbf11a3eb1b0d0d7ab5367b7d583bb/crates/udon/src/polynomial/multiplication.rs
+[`udon`]: https://github.com/tachyon-zcash/udon/tree/609e5d8ade4a9ca1368bfa5a7d334519a579bbd0/crates/udon
+[`evaluate`]: https://github.com/tachyon-zcash/udon/blob/609e5d8ade4a9ca1368bfa5a7d334519a579bbd0/crates/udon/src/polynomial/evaluation.rs
+[`dot`]: https://github.com/tachyon-zcash/udon/blob/609e5d8ade4a9ca1368bfa5a7d334519a579bbd0/crates/udon/src/field/products.rs
+[`dot_iter`]: https://github.com/tachyon-zcash/udon/blob/609e5d8ade4a9ca1368bfa5a7d334519a579bbd0/crates/udon/src/field/products.rs
+[`multiply`]: https://github.com/tachyon-zcash/udon/blob/609e5d8ade4a9ca1368bfa5a7d334519a579bbd0/crates/udon/src/polynomial/multiplication.rs

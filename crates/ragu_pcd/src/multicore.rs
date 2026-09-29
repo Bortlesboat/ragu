@@ -1,35 +1,25 @@
-//! Parallel-execution utilities backed by [`maybe_rayon`].
-
-#[cfg(feature = "multicore")]
-pub use maybe_rayon::{current_num_threads, iter::ParallelIterator};
-pub use maybe_rayon::{iter::IntoParallelIterator, join};
-
-/// Returns 1 when the `multicore` feature is disabled.
-#[cfg(not(feature = "multicore"))]
-pub fn current_num_threads() -> usize {
-    1
-}
-
 /// N-way parallel join for coarse-grained task parallelism.
 ///
-/// Like [`join`] for more than two closures: nests internally and flattens
+/// Like [`maybe_rayon::join`] for more than two closures: nests internally and flattens
 /// the result into a single tuple. Each closure may return a different type.
 /// Supports 2..=4 closures — for higher arities prefer a data-parallel
 /// iterator.
-#[macro_export]
 macro_rules! par_join {
     ($a:expr, $b:expr $(,)?) => {
-        $crate::join($a, $b)
+        maybe_rayon::join($a, $b)
     };
     ($a:expr, $b:expr, $c:expr $(,)?) => {{
-        let (a, (b, c)) = $crate::join($a, || $crate::join($b, $c));
+        let (a, (b, c)) = maybe_rayon::join($a, || maybe_rayon::join($b, $c));
         (a, b, c)
     }};
     ($a:expr, $b:expr, $c:expr, $d:expr $(,)?) => {{
-        let ((a, b), (c, d)) = $crate::join(|| $crate::join($a, $b), || $crate::join($c, $d));
+        let ((a, b), (c, d)) =
+            maybe_rayon::join(|| maybe_rayon::join($a, $b), || maybe_rayon::join($c, $d));
         (a, b, c, d)
     }};
 }
+
+pub(crate) use par_join;
 
 #[cfg(test)]
 mod tests {

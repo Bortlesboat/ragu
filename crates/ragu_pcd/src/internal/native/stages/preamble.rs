@@ -5,10 +5,9 @@
 use alloc::vec::Vec;
 use core::marker::PhantomData;
 
-use ragu_arithmetic::Cycle;
 use ragu_circuits::{horner::Horner, polynomials::Rank, staging};
 use ragu_core::{
-    Error, Result,
+    Cycle, Error, Result,
     drivers::{Driver, DriverValue},
     gadgets::{Bound, Gadget, Kind},
     maybe::Maybe,
@@ -308,7 +307,7 @@ impl<C: Cycle, R: Rank, const HEADER_SIZE: usize> staging::Stage<C::CircuitField
 
 #[cfg(test)]
 mod tests {
-    use ragu_pasta::Pasta;
+    use ragu_core::pasta::Pasta;
 
     use super::*;
     use crate::internal::tests::{HEADER_SIZE, R, assert_stage_values};

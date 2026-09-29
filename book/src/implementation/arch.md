@@ -34,7 +34,7 @@ crates in the Ragu workspace. It omits placeholder and testing crates
 (`ragu_acceleration`, `ragu_backend`, `ragu_gadgets`, `ragu_testing`) as
 well as dev-dependencies. Arrows point
 from a crate to the crates it depends on. The arithmetic comes from outside
-the workspace: [`udon`](https://github.com/zakura-core/common/tree/95fa3cc764c9db6b7ab8c1ab364c884df4b48250/crates/udon) implements the
+the workspace: [`udon`](https://docs.rs/crate/zakura-udon/0.1.0/source/) implements the
 Pasta fields, curves, cycle traits, and Poseidon parameter interfaces;
 `ragu_core` builds the `Driver` abstraction on top of it;
 `ragu_primitives` and `ragu_circuits` extend that layer with gadgets and

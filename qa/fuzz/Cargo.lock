@@ -812,7 +812,8 @@ checksum = "1ebf944e87a7c253233ad6766e082e3cd714b5d03812acc24c318f549614536e"
 [[package]]
 name = "zakura-bento"
 version = "0.1.0"
-source = "git+https://github.com/zakura-core/common?rev=95fa3cc764c9db6b7ab8c1ab364c884df4b48250#95fa3cc764c9db6b7ab8c1ab364c884df4b48250"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "feb6bc45a1c5ec17d7721ddefec96edfbc0f15620e9aea845b482b3b67f61c97"
 dependencies = [
  "zakura-bento-core",
  "zakura-bento-macros",
@@ -821,12 +822,14 @@ dependencies = [
 [[package]]
 name = "zakura-bento-core"
 version = "0.1.0"
-source = "git+https://github.com/zakura-core/common?rev=95fa3cc764c9db6b7ab8c1ab364c884df4b48250#95fa3cc764c9db6b7ab8c1ab364c884df4b48250"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22674d025e6df7ef104c85d725b9f6ba492743dc26bc2b826fdb03afddc87e4e"
 
 [[package]]
 name = "zakura-bento-macros"
 version = "0.1.0"
-source = "git+https://github.com/zakura-core/common?rev=95fa3cc764c9db6b7ab8c1ab364c884df4b48250#95fa3cc764c9db6b7ab8c1ab364c884df4b48250"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ec31cdcdd72866e1aed6ff8a5d38fdb56e5038cdf86f44b0f45cf84ef4bf224"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -852,7 +855,8 @@ dependencies = [
 [[package]]
 name = "zakura-udon"
 version = "0.1.0"
-source = "git+https://github.com/zakura-core/common?rev=95fa3cc764c9db6b7ab8c1ab364c884df4b48250#95fa3cc764c9db6b7ab8c1ab364c884df4b48250"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "23e592f34daf47ed96906c7785842ffc9b558c139bc23ea54d7f6e5ecc03e50d"
 dependencies = [
  "zakura-bento",
 ]

@@ -26,13 +26,6 @@ ragu_pcd = { version = "0.1", features = ["baked"] }
 ragu_primitives = "0.1"
 udon = { package = "zakura-udon", version = "0.1.0", features = ["traits"] }
 rand = "0.10"
-
-# Udon and Bento are not yet published; patch them in the workspace root.
-[patch.crates-io]
-zakura-udon = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }
-zakura-bento = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }
-zakura-bento-core = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }
-zakura-bento-macros = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }
 ```
 
 This example uses a fixed registry tag for testing. **Do not enable

@@ -79,8 +79,8 @@ noncontiguous inputs; [`dot`] and [`dot_iter`] expose the same Pasta kernels
 directly. These helpers provide the scalar operations underlying polynomial
 evaluation and inner-product checks.
 
-[`udon`]: https://github.com/zakura-core/common/tree/95fa3cc764c9db6b7ab8c1ab364c884df4b48250/crates/udon
-[`evaluate`]: https://github.com/zakura-core/common/blob/95fa3cc764c9db6b7ab8c1ab364c884df4b48250/crates/udon/src/polynomial/evaluation.rs
-[`evaluate_iter`]: https://github.com/zakura-core/common/blob/95fa3cc764c9db6b7ab8c1ab364c884df4b48250/crates/udon/src/polynomial/evaluation.rs
-[`dot`]: https://github.com/zakura-core/common/blob/95fa3cc764c9db6b7ab8c1ab364c884df4b48250/crates/udon/src/field/pasta/products/mod.rs
-[`dot_iter`]: https://github.com/zakura-core/common/blob/95fa3cc764c9db6b7ab8c1ab364c884df4b48250/crates/udon/src/field/pasta/products/mod.rs
+[`udon`]: https://docs.rs/crate/zakura-udon/0.1.0/source/
+[`evaluate`]: https://docs.rs/crate/zakura-udon/0.1.0/source/src/polynomial/evaluation.rs
+[`evaluate_iter`]: https://docs.rs/crate/zakura-udon/0.1.0/source/src/polynomial/evaluation.rs
+[`dot`]: https://docs.rs/crate/zakura-udon/0.1.0/source/src/field/pasta/products/mod.rs
+[`dot_iter`]: https://docs.rs/crate/zakura-udon/0.1.0/source/src/field/pasta/products/mod.rs

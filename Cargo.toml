@@ -92,11 +92,3 @@ bento = { package = "zakura-bento", version = "0.1.0", default-features = false 
 # Poseidon parameters.
 udon = { package = "zakura-udon", version = "0.1.0", default-features = false, features = ["traits", "poseidon"] }
 criterion = { version = "0.5", default-features = false }
-
-# Udon and Bento from zakura-core/common#523. Keep this revision in sync
-# with the patches in qa/fuzz/Cargo.toml.
-[patch.crates-io]
-zakura-udon = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }
-zakura-bento = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }
-zakura-bento-core = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }
-zakura-bento-macros = { git = "https://github.com/zakura-core/common", rev = "95fa3cc764c9db6b7ab8c1ab364c884df4b48250" }

@@ -56,7 +56,7 @@ use ragu_core::{
     maybe::Maybe,
 };
 use ragu_primitives::{Element, GadgetExt, allocator::Standard, vec::FixedVec};
-use udon::curve::EndomorphismAffine as Affine;
+use udon::{curve::EndomorphismAffine as Affine, field::Field};
 
 use super::common;
 use crate::internal::{
@@ -227,7 +227,7 @@ impl<'dr, D: Driver<'dr>> Denominators<'dr, D> {
         preamble: &nested_preamble::Output<'dr, D, C>,
     ) -> Result<Self>
     where
-        D::F: udon::field::Field,
+        D::F: Field,
     {
         let xz = x.mul(dr, z)?;
 

@@ -441,7 +441,7 @@ mod tests {
         element: Element<'dr, D>,
     }
 
-    impl<F: udon::field::Field> ragu_primitives::io::Write<F> for Kind![F; @MulOnWrite<'_, _>] {
+    impl<F: Field> ragu_primitives::io::Write<F> for Kind![F; @MulOnWrite<'_, _>] {
         fn write_gadget<'dr, D: Driver<'dr, F = F>, B: ragu_primitives::io::Buffer<'dr, D>>(
             _this: &MulOnWrite<'dr, D>,
             dr: &mut D,

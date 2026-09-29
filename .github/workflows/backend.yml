@@ -16,15 +16,17 @@ permissions:
   contents: read
 
 jobs:
-  # The general Rust jobs exercise all features together; this checks the
-  # backends' distinct feature configuration and the end-to-end boundary. One
-  # runner: the accelerated backend carries no override today, so there is no
-  # backend-specific code to spread across a matrix. When one lands, extend
-  # this job (a matrix here, not a feature-specific job and three more PR
-  # status checks), and it arrives with its own differential tests.
+  # Extend this shared matrix when another accelerated backend lands instead
+  # of adding a feature-specific matrix (and three more PR status checks).
+  # The general Rust jobs exercise all features together; this checks each
+  # backend's distinct feature configuration and end-to-end boundary.
   backend-equivalence:
-    name: backend equivalence
-    runs-on: ubuntu-latest
+    name: backend equivalence (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
@@ -35,10 +37,12 @@ jobs:
           components: clippy
           cache-suffix: backend-equivalence
       - name: Run acceleration backend clippy
+        if: matrix.os == 'ubuntu-latest'
         run: >-
           cargo clippy -p ragu_acceleration --lib --tests --no-default-features
           -- -D warnings
       - name: Run PCD backend clippy
+        if: matrix.os == 'ubuntu-latest'
         run: >-
           cargo clippy -p ragu_pcd --lib --tests --benches --no-default-features
           -- -D warnings

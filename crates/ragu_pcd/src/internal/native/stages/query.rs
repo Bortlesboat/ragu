@@ -111,7 +111,7 @@ impl<'dr, D: Driver<'dr>> Gadget<'dr, D> for InternalCircuitValues<Element<'dr, 
 
 // SAFETY: `Element` is `Send` when `D::Wire: Send`, and `InternalCircuitValues`
 // is a plain product of `Element`s, so the same implication holds.
-unsafe impl<F: udon::field::Field> ragu_core::gadgets::GadgetKind<F>
+unsafe impl<F: Field> ragu_core::gadgets::GadgetKind<F>
     for InternalCircuitValues<Element<'static, PhantomData<F>>>
 {
     type Rebind<'dr, D: Driver<'dr, F = F>> = InternalCircuitValues<Element<'dr, D>>;
@@ -149,7 +149,7 @@ impl<'dr, D: Driver<'dr>> Gadget<'dr, D> for RxValues<Element<'dr, D>> {
 
 // SAFETY: `Element` is `Send` when `D::Wire: Send`, and `RxValues`
 // is a plain product of `Element`s, so the same implication holds.
-unsafe impl<F: udon::field::Field> ragu_core::gadgets::GadgetKind<F>
+unsafe impl<F: Field> ragu_core::gadgets::GadgetKind<F>
     for RxValues<Element<'static, PhantomData<F>>>
 {
     type Rebind<'dr, D: Driver<'dr, F = F>> = RxValues<Element<'dr, D>>;
@@ -181,9 +181,7 @@ unsafe impl<F: udon::field::Field> ragu_core::gadgets::GadgetKind<F>
     }
 }
 
-impl<F: udon::field::Field> ragu_primitives::io::Write<F>
-    for RxValues<Element<'static, PhantomData<F>>>
-{
+impl<F: Field> ragu_primitives::io::Write<F> for RxValues<Element<'static, PhantomData<F>>> {
     fn write_gadget<'dr, D: Driver<'dr, F = F>, B: ragu_primitives::io::Buffer<'dr, D>>(
         this: &Bound<'dr, D, Self>,
         dr: &mut D,

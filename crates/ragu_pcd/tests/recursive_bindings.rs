@@ -686,7 +686,7 @@ mod claim_values {
 
     /// Move c by an independently chosen delta, rather than rescale A/B while
     /// preserving c. The untouched circuit traces still claim the original fold.
-    fn change_c<F: udon::field::Field>(
+    fn change_c<F: Field>(
         a: &mut sparse::Polynomial<F, R>,
         b: &sparse::Polynomial<F, R>,
         delta: F,
